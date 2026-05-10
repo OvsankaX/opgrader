@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V26</title>
+    <title>UPGRADOR V25 - FIX</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -55,7 +55,7 @@
 
         #cursor-wrapper { position: absolute; inset: 0; z-index: 20; will-change: transform; }
         #cursor-line { 
-            position: absolute; top: 0; left: 50%; width: 4px; height: 20px; 
+            position: absolute; top: 0; left: 50%; width: 3px; height: 18px; 
             background: #fff; transform: translateX(-50%); 
             box-shadow: 0 0 12px #fff, 0 0 20px var(--accent); border-radius: 0 0 2px 2px; 
         }
@@ -84,6 +84,8 @@
         .modal-card { background: var(--panel); border: 2px solid var(--accent); border-radius: 15px; padding: 25px; width: 100%; max-width: 320px; text-align: center; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
+        .win-glow { color: var(--win); text-shadow: 0 0 20px var(--win), 0 0 40px var(--win); }
+        .loss-glow { color: var(--loss); text-shadow: 0 0 20px var(--loss), 0 0 40px var(--loss); }
     </style>
 </head>
 <body>
@@ -144,7 +146,7 @@
         <div id="p-shop" class="container">
             <h3 style="margin-bottom:15px; text-align:center;">МАГАЗИН</h3>
             <div style="display:flex; gap:8px; margin-bottom:15px;">
-                <input type="number" id="budget" placeholder="Бюджет..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
+                <input type="number" id="budget" placeholder="Мин. цена..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
                 <button class="opt-btn" style="flex:0.4" onclick="refreshShop()">ПОИСК</button>
             </div>
             <div id="shop-grid" class="grid"></div>
@@ -165,7 +167,7 @@
             </div>
             <div id="inv-prof" class="grid" style="margin-top:15px"></div>
         </div>
-    </main>
+    </header>
 
     <script>
         const ITEMS_POOL = ["Зуб", "Мозг", "Чип", "Ключ", "Сердце", "Почка", "Диск", "Кольцо"];
@@ -267,69 +269,55 @@
         }
         function setM(m, id) { setChance(Math.floor(100/m), id); }
 
-        // ПЛАВНАЯ АНИМАЦИЯ И РЕГИСТРАЦИЯ
+        // ОБНОВЛЕННАЯ ФУНКЦИЯ ПРОКРУТКИ
         function startSpin() {
             if(spinning || selected.size !== 1) return;
             spinning = true;
             document.getElementById('status-msg').innerText = "";
             document.getElementById('status-msg').className = "";
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = true);
-            
             const item = user.inv.find(x => x.id === [...selected][0]);
-
-            // ЗАДЕРЖКА 0.5 СЕКУНДЫ ПЕРЕД СТАРТОМ
+            
+            // ПАУЗА ПЕРЕД СТАРТОМ 0.5 СЕК
             setTimeout(() => {
                 let start = null;
-                const duration = 3800; // Оптимальное время
-                const totalRotation = 2160 + (Math.random() * 360); // 6 полных оборотов + рандом
-                const initialRot = currentRot;
+                const dur = 3500; // Время прокрутки
+                const totalRot = 1440 + (Math.random() * 360); // 4 оборота + рандом
+                const sAng = currentRot;
 
-                function step(timestamp) {
-                    if (!start) start = timestamp;
-                    let progress = (timestamp - start) / duration;
+                function animate(now) {
+                    if(!start) start = now;
+                    let t = Math.min((now - start) / dur, 1);
                     
-                    if (progress > 1) progress = 1;
-
-                    // КРИВАЯ ДЛЯ ПЛАВНОГО РАЗГОНА И ЗАМЕДЛЕНИЯ
-                    const ease = progress < 0.5 
-                        ? 4 * progress * progress * progress 
-                        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-
-                    currentRot = initialRot + (ease * totalRotation);
+                    // ЭФФЕКТ РАЗГОНА И ПЛАВНОГО ТОРМОЖЕНИЯ (easeInOutQuart)
+                    let ease = t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+                    
+                    currentRot = sAng + (ease * totalRot);
                     document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
-
-                    if (progress < 1) {
-                        requestAnimationFrame(step);
-                    } else {
-                        finish(currentRot % 360, item);
-                    }
+                    
+                    if(t < 1) requestAnimationFrame(animate);
+                    else finish(currentRot % 360, item);
                 }
-                requestAnimationFrame(step);
+                requestAnimationFrame(animate);
             }, 500);
         }
 
         function finish(deg, item) {
-            spinning = false; 
-            user.stats.ups++;
+            spinning = false; user.stats.ups++;
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = false);
-
-            // ТЕХНИЧЕСКИ ТОЧНАЯ ПРОВЕРКА (Учитываем ширину палочки ~3 градуса)
-            // Центр секции внизу (180 градусов). Секция занимает winRange градусов.
-            const winRange = (chance / 100) * 360;
-            const normalizedDeg = deg; 
             
-            // Проверка: находится ли курсор внутри нижнего сектора заливки
-            const diff = Math.abs(normalizedDeg - 180);
-            const win = diff <= (winRange / 2);
-
+            // ХИТБОКС РЕГЕСТРАЦИИ: ТОЧНО ПО ВИЗУАЛУ ПАЛОЧКИ
+            const winSize = (chance / 100) * 360;
+            // Центр зоны выигрыша находится на 180 градусах (низ круга)
+            // Добавляем погрешность в 1.5 градуса (ширина палочки)
+            const win = (deg >= (180 - winSize/2 - 1.5) && deg <= (180 + winSize/2 + 1.5));
+            
             const msg = document.getElementById('status-msg');
             if(win) {
                 const profit = Math.floor(item.p * (100/chance)) - item.p;
-                item.p += profit; 
-                item.n = "★ " + item.n.replace("★ ", "");
+                item.p += profit; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += profit;
-                msg.innerText = "УСПЕХ"; msg.className = "win-glow"; 
-                spawnExplosion();
+                msg.innerText = "УСПЕХ"; msg.className = "win-glow"; spawnExplosion();
             } else {
                 user.stats.lost += item.p;
                 user.inv = user.inv.filter(x => x.id !== item.id);
