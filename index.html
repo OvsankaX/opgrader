@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V13 FULL</title>
+    <title>UPGRADOR V14 FIXED</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -20,62 +20,64 @@
         }
         .header-logo { 
             position: absolute; left: 50%; transform: translateX(-50%);
-            font-weight: 900; font-size: 1.2rem; color: var(--accent); 
-            letter-spacing: 3px; cursor: pointer; text-transform: uppercase;
-            text-shadow: 0 0 10px var(--accent-glow);
+            font-weight: 900; font-size: 1.1rem; color: var(--accent); 
+            letter-spacing: 2px; text-transform: uppercase;
         }
-        .nav-btn { font-size: 1.5rem; cursor: pointer; z-index: 10; }
-        .balance-box { margin-left: auto; display: flex; align-items: center; gap: 8px; font-weight: bold; z-index: 10; }
+        .nav-btn { font-size: 1.4rem; cursor: pointer; z-index: 10; padding: 5px; }
+        .balance-box { margin-left: auto; display: flex; align-items: center; gap: 6px; font-weight: bold; z-index: 10; }
 
-        main { flex-grow: 1; overflow-y: auto; padding: 10px 15px; display: flex; flex-direction: column; align-items: center; }
-        .container { display: none; width: 100%; max-width: 450px; }
+        main { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .container { display: none; width: 100%; max-width: 400px; margin-top: 0; }
+
+        /* Центрирование круга без пустот */
+        .wheel-wrapper {
+            width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+        }
 
         .wheel-container { 
-            position: relative; width: 260px; height: 260px; margin: 10px 0 20px 0; 
-            border-radius: 50%; border: 8px solid #1a1a1a; background: #000; overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            position: relative; width: 250px; height: 250px; margin: 10px 0; 
+            border-radius: 50%; border: 6px solid #1a1a1a; background: #000; overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         #wheel-fill { 
             position: absolute; bottom: 0; width: 100%; background: var(--accent); 
-            box-shadow: 0 0 40px var(--accent-glow);
-            transition: height 0.6s cubic-bezier(0.17, 0.84, 0.44, 1);
+            box-shadow: 0 0 30px var(--accent-glow);
+            transition: height 0.4s ease-out;
         }
         
         #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
         #cursor-line { 
-            position: absolute; top: 8px; left: 50%; width: 5px; height: 26px; 
+            position: absolute; top: 5px; left: 50%; width: 5px; height: 25px; 
             background: #fff; border-radius: 10px; transform: translateX(-50%); 
-            box-shadow: 0 0 12px #fff; 
+            box-shadow: 0 0 10px #fff; 
         }
 
         .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
-        #status-msg { height: 30px; font-size: 1.3rem; font-weight: 900; margin-top: 5px; }
-        .win-glow { color: var(--win) !important; text-shadow: 0 0 15px var(--win); }
-        .loss-glow { color: var(--loss) !important; text-shadow: 0 0 15px var(--loss); }
+        #status-msg { height: 24px; font-size: 1.2rem; font-weight: 900; margin-top: 2px; }
 
-        .btn-row { display: flex; width: 100%; gap: 8px; margin-bottom: 8px; }
-        .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 5px; border-radius: 10px; flex: 1; font-weight: bold; font-size: 0.9rem; }
-        .opt-btn.active { background: var(--accent); border-color: #fff; box-shadow: 0 0 10px var(--accent-glow); }
+        .btn-row { display: flex; width: 100%; gap: 6px; margin-bottom: 6px; }
+        .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 10px 2px; border-radius: 10px; flex: 1; font-weight: bold; font-size: 0.85rem; }
+        .opt-btn.active { background: var(--accent); border-color: #fff; }
 
-        .action-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.1rem; font-weight: 900; box-shadow: 0 4px 12px var(--accent-glow); margin: 10px 0; }
+        .action-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.1rem; font-weight: 900; margin: 5px 0 15px 0; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; padding-bottom: 20px; }
-        .item-frame { border: 1px solid #222; border-radius: var(--radius); padding: 15px; background: var(--panel); text-align: center; }
+        .item-frame { border: 1px solid #222; border-radius: var(--radius); padding: 12px; background: var(--panel); text-align: center; font-size: 0.9rem; }
         .item-frame.selected { border-color: var(--accent); background: #1e0a2e; }
-        .price { color: var(--win); font-weight: bold; margin-top: 5px; }
+        .price { color: var(--win); font-weight: bold; margin-top: 4px; }
 
-        .stats-list { background: var(--panel); border-radius: var(--radius); padding: 15px; border: 1px solid #222; margin-bottom: 15px; line-height: 2; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; align-items: center; justify-content: center; }
-        canvas#p-canvas { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
+        .win-glow { color: var(--win); text-shadow: 0 0 10px var(--win); }
+        .loss-glow { color: var(--loss); text-shadow: 0 0 10px var(--loss); }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <div style="background:var(--panel); padding:30px; border-radius:15px; border:1px solid var(--accent); width:280px; text-align:center;">
-            <h2 style="color:var(--accent); margin-bottom:15px;">ВХОД</h2>
-            <input type="text" id="user-in" placeholder="Твой ник..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; outline:none; text-align:center;">
-            <button class="action-btn" style="margin:0" onclick="login()">ИГРАТЬ</button>
+        <div style="background:var(--panel); padding:25px; border-radius:15px; border:1px solid var(--accent); width:260px; text-align:center;">
+            <h2 style="color:var(--accent); margin-bottom:15px;">LOGIN</h2>
+            <input type="text" id="user-in" placeholder="Ник..." style="width:100%; padding:10px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; text-align:center; outline:none;">
+            <button class="action-btn" style="margin:0" onclick="login()">ВОЙТИ</button>
         </div>
     </div>
 
@@ -90,59 +92,58 @@
 
     <main>
         <div id="p-main" class="container" style="display: block;">
-            <div class="wheel-container">
-                <canvas id="p-canvas"></canvas>
-                <div id="wheel-fill" style="height: 10%;"></div>
-                <div id="cursor-wrapper"><div id="cursor-line"></div></div>
-                <div class="center-stat">
-                    <h2 id="pct-view" style="font-size: 2.8rem; font-weight: 900;">10%</h2>
-                    <div id="status-msg"></div>
+            <div class="wheel-wrapper">
+                <div class="wheel-container">
+                    <div id="wheel-fill" style="height: 10%;"></div>
+                    <div id="cursor-wrapper"><div id="cursor-line"></div></div>
+                    <div class="center-stat">
+                        <h2 id="pct-view" style="font-size: 2.5rem; font-weight: 900;">10%</h2>
+                        <div id="status-msg"></div>
+                    </div>
                 </div>
+                <div class="btn-row">
+                    <button class="opt-btn bc" id="m2" onclick="setM(2, 'm2')">X2</button>
+                    <button class="opt-btn bc" id="m4" onclick="setM(4, 'm4')">X4</button>
+                    <button class="opt-btn bc" id="m10" onclick="setM(10, 'm10')">X10</button>
+                </div>
+                <div class="btn-row">
+                    <button class="opt-btn bc" id="c35" onclick="setChance(35, 'c35')">35%</button>
+                    <button class="opt-btn bc" id="c55" onclick="setChance(55, 'c55')">55%</button>
+                    <button class="opt-btn bc" id="c75" onclick="setChance(75, 'c75')">75%</button>
+                </div>
+                <button class="action-btn" id="go-btn" onclick="startSpin()">ПРОКАЧАТЬ</button>
+                <div id="inv-main" class="grid"></div>
             </div>
-            <div class="btn-row">
-                <button class="opt-btn bc" id="m2" onclick="setM(2, 'm2')">X2</button>
-                <button class="opt-btn bc" id="m4" onclick="setM(4, 'm4')">X4</button>
-                <button class="opt-btn bc" id="m10" onclick="setM(10, 'm10')">X10</button>
-            </div>
-            <div class="btn-row">
-                <button class="opt-btn bc" id="c35" onclick="setChance(35, 'c35')">35%</button>
-                <button class="opt-btn bc" id="c55" onclick="setChance(55, 'c55')">55%</button>
-                <button class="opt-btn bc" id="c75" onclick="setChance(75, 'c75')">75%</button>
-            </div>
-            <button class="action-btn" id="go-btn" onclick="startSpin()">ПРОКАЧАТЬ</button>
-            <div id="inv-main" class="grid"></div>
         </div>
 
         <div id="p-shop" class="container">
-            <h2 style="margin-bottom:10px;">МАГАЗИН</h2>
-            <div style="display:flex; gap:8px; margin-bottom:15px;">
-                <input type="number" id="budget" placeholder="Мин. цена..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
-                <button class="opt-btn" onclick="refreshShop()">ПОИСК</button>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <input type="number" id="budget" placeholder="Цена от..." style="flex:1; padding:10px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
+                <button class="opt-btn" style="flex:0.4" onclick="refreshShop()">ПОИСК</button>
             </div>
             <div id="shop-grid" class="grid"></div>
-            <button class="action-btn" onclick="buySelected()">КУПИТЬ ВЫБРАННОЕ</button>
+            <button class="action-btn" onclick="buySelected()">КУПИТЬ</button>
         </div>
 
         <div id="p-profile" class="container">
-            <h2>ПРОФИЛЬ</h2>
-            <div id="stat-box" class="stats-list"></div>
+            <div id="stat-box" style="background:var(--panel); padding:15px; border-radius:12px; border:1px solid #222; margin-bottom:10px; font-size:0.9rem; line-height:1.8;"></div>
             <div class="btn-row">
                 <button class="opt-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ</button>
                 <button class="opt-btn" onclick="sellAll()">ПРОДАТЬ ВСЁ</button>
             </div>
-            <div id="inv-prof" class="grid"></div>
+            <div id="inv-prof" class="grid" style="margin-top:10px"></div>
         </div>
     </main>
 
     <script>
-        const POOL = ["Золотой зуб", "Мозг хлебушка", "Почка соседа", "Заначка", "Сифилис", "Герпес", "Сердце бывшего"];
+        const ITEMS = ["Зуб", "Мозг", "Заначка", "Сифилис", "Сердце бывшего", "Носок", "Почка"];
         let user = { name: "", bal: 1000, inv: [], stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} } };
         let chance = 10, selected = new Set(), spinning = false, currentRot = 0;
 
         function login() {
             const n = document.getElementById('user-in').value;
             if(!n) return;
-            const s = localStorage.getItem('upg_v13_'+n);
+            const s = localStorage.getItem('upg_v14_'+n);
             if(s) user = JSON.parse(s);
             else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
             document.getElementById('auth-screen').style.display='none';
@@ -154,15 +155,15 @@
             renderInv('inv-main', true);
             renderInv('inv-prof', false);
             renderStats();
-            localStorage.setItem('upg_v13_'+user.name, JSON.stringify(user));
+            localStorage.setItem('upg_v14_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
             document.getElementById('stat-box').innerHTML = `
-                👤 Игрок: <b>${user.name}</b><br>
-                💸 Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
-                📈 Прибыль: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
-                🏆 Топ: <b>${user.stats.best.n} (${user.stats.best.p} ₴)</b>
+                Игрок: <b>${user.name}</b><br>
+                Профит: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
+                Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
+                Лучший дроп: <b>${user.stats.best.n} (${user.stats.best.p} ₴)</b>
             `;
         }
 
@@ -196,10 +197,10 @@
 
         function startSpin() {
             if(spinning || selected.size !== 1) return;
-            spinning = true;
-            document.getElementById('go-btn').disabled = true;
+            spinning = true; document.getElementById('go-btn').disabled = true;
+            document.getElementById('status-msg').innerText = "";
             const item = user.inv.find(x => x.id === [...selected][0]);
-            let start = null, dur = 3500, rot = 1440 + (Math.random()*360), sAng = currentRot;
+            let start = null, dur = 3000, rot = 1440 + (Math.random()*360), sAng = currentRot;
 
             function animate(now) {
                 if(!start) start = now;
@@ -216,22 +217,21 @@
         function finish(deg, item) {
             spinning = false; document.getElementById('go-btn').disabled = false;
             const winSize = (chance / 100) * 360;
-            const sZone = 180 - (winSize / 2) - 5; // Фора 5 градусов
-            const eZone = 180 + (winSize / 2) + 5;
+            const sZone = 180 - (winSize / 2) - 4; // Фора 4 градуса
+            const eZone = 180 + (winSize / 2) + 4;
             const win = (deg >= sZone && deg <= eZone);
             
+            const msg = document.getElementById('status-msg');
             if(win) {
                 const p = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += p; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += p;
                 if(item.p > user.stats.best.p) user.stats.best = {n: item.n, p: item.p};
-                document.getElementById('status-msg').innerText = "ПОБЕДА"; 
-                document.getElementById('status-msg').className = "win-glow";
+                msg.innerText = "ПОБЕДА"; msg.className = "win-glow";
             } else {
                 user.stats.lost += item.p;
                 user.inv = user.inv.filter(x => x.id !== item.id);
-                document.getElementById('status-msg').innerText = "НЕ БЕДА"; 
-                document.getElementById('status-msg').className = "loss-glow";
+                msg.innerText = "НЕ БЕДА"; msg.className = "loss-glow";
             }
             update();
         }
@@ -239,7 +239,7 @@
         let sItems = [];
         function refreshShop() {
             const b = parseInt(document.getElementById('budget').value) || 20;
-            sItems = Array.from({length:6}, (_,i) => ({id:'s'+i, n: POOL[Math.floor(Math.random()*POOL.length)], p: Math.floor(b + Math.random()*b*0.4)}));
+            sItems = Array.from({length:6}, (_,i) => ({id:'s'+i, n: ITEMS[Math.floor(Math.random()*ITEMS.length)], p: Math.floor(b + Math.random()*b*0.5)}));
             const g = document.getElementById('shop-grid'); g.innerHTML = '';
             sItems.forEach(i => {
                 const d = document.createElement('div'); d.className = 'item-frame';
@@ -251,7 +251,7 @@
 
         function buySelected() {
             sItems.forEach(i => { if(i.sel && user.bal >= i.p) { user.bal -= i.p; user.inv.push({...i, id: Date.now()+Math.random()}); }});
-            selected.clear(); showPage('main'); update();
+            showPage('main'); update();
         }
 
         function sellSelected() {
@@ -263,5 +263,6 @@
     </script>
 </body>
 </html>
+
 
 
