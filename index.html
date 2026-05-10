@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V20 ULTRA SMOOTH</title>
+    <title>UPGRADOR V21 SEARCH FIX</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -66,8 +66,12 @@
         .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
         #status-msg { height: 40px; font-size: 1.8rem; font-weight: 900; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* Canvas for BIG explosion */
         #particle-canvas { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 100; width: 400px; height: 400px; }
+
+        /* Inputs & Buttons */
+        .search-row { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; }
+        .input-dark { flex: 1; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; outline: none; }
+        .input-dark:focus { border-color: var(--accent); }
 
         .btn-row { display: flex; width: 100%; gap: 6px; margin-bottom: 8px; }
         .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 2px; border-radius: 10px; flex: 1; font-weight: bold; font-size: 0.85rem; }
@@ -83,8 +87,6 @@
         .modal-card { background: var(--panel); border: 1px solid var(--accent); border-radius: 15px; padding: 25px; width: 100%; max-width: 320px; text-align: center; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
-        .win-glow { color: var(--win); text-shadow: 0 0 20px var(--win); }
-        .loss-glow { color: var(--loss); text-shadow: 0 0 20px var(--loss); }
     </style>
 </head>
 <body>
@@ -103,8 +105,8 @@
 
     <div id="auth-screen">
         <div style="background:var(--panel); padding:25px; border-radius:15px; border:1px solid var(--accent); width:280px; text-align:center;">
-            <h2 style="color:var(--accent); margin-bottom:15px;">UPGRADOR V20</h2>
-            <input type="text" id="user-in" placeholder="Никнейм..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; text-align:center; outline:none;">
+            <h2 style="color:var(--accent); margin-bottom:15px;">UPGRADOR V21</h2>
+            <input type="text" id="user-in" placeholder="Никнейм..." class="input-dark" style="margin-bottom:15px; text-align:center;">
             <button class="action-btn" style="margin:0" onclick="login()">ВОЙТИ</button>
         </div>
     </div>
@@ -147,6 +149,10 @@
 
         <div id="p-shop" class="container">
             <h3 style="margin-bottom:10px">МАГАЗИН</h3>
+            <div class="search-row">
+                <input type="number" id="budget" placeholder="Бюджет (от)..." class="input-dark">
+                <button class="opt-btn" style="flex:0.4" onclick="refreshShop()">ПОИСК</button>
+            </div>
             <div id="shop-grid" class="grid"></div>
             <button class="action-btn" onclick="askBuy()">КУПИТЬ ВЫБРАННОЕ</button>
         </div>
@@ -166,7 +172,6 @@
         let user = { name: "", bal: 1000, inv: [], stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} } };
         let chance = 10, selected = new Set(), spinning = false, currentRot = 0, pendingAction = null;
 
-        // БОЛЬШОЙ ВЗРЫВ
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -175,11 +180,11 @@
         function spawnExplosion() {
             for(let i=0; i<60; i++) {
                 particles.push({
-                    x: 200, y: 200, // Ровно по центру канваса
-                    vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12,
-                    size: Math.random()*4 + 2,
+                    x: 200, y: 200,
+                    vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15,
+                    size: Math.random()*5 + 2,
                     life: 1, 
-                    color: Math.random() > 0.3 ? '#a020f0' : '#00ff88'
+                    color: Math.random() > 0.3 ? '#a020f0' : '#ffffff'
                 });
             }
         }
@@ -187,7 +192,7 @@
         function drawParticles() {
             ctx.clearRect(0,0,400,400);
             particles.forEach((p,i) => {
-                p.x += p.vx; p.y += p.vy; p.life -= 0.015;
+                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
                 if(p.life <= 0) particles.splice(i,1);
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.life;
@@ -209,9 +214,9 @@
         function login() {
             const n = document.getElementById('user-in').value.trim();
             if(!n) return;
-            const saved = localStorage.getItem('upg_v20_'+n);
+            const saved = localStorage.getItem('upg_v21_'+n);
             if(saved) user = JSON.parse(saved);
-            else { user.name = n; user.inv = [{id:1, n:"Стартовый пак", p:100}]; }
+            else { user.name = n; user.inv = [{id:1, n:"Кожаная куртка", p:100}]; }
             document.getElementById('auth-screen').style.display = 'none';
             refreshShop(); update();
         }
@@ -222,7 +227,7 @@
             renderInv('inv-prof', false);
             renderStats();
             document.getElementById('go-btn').disabled = (selected.size === 0 || spinning);
-            localStorage.setItem('upg_v20_'+user.name, JSON.stringify(user));
+            localStorage.setItem('upg_v21_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
@@ -230,8 +235,6 @@
             document.getElementById('stat-box').innerHTML = `
                 👤 Игрок: <b style="color:var(--accent)">${user.name}</b><br>
                 📊 ИТОГО: <b style="color:${total >= 0 ? 'var(--win)' : 'var(--loss)'}">${total >= 0 ? '+' : ''}${total} ₴</b><br>
-                📈 Плюс: <span style="color:var(--win)">+${user.stats.earned} ₴</span><br>
-                📉 Минус: <span style="color:var(--loss)">-${user.stats.lost} ₴</span><hr style="margin:8px 0; opacity:0.1">
                 🏆 Топ: <b>${user.stats.best.n} (${user.stats.best.p} ₴)</b>
             `;
         }
@@ -263,7 +266,6 @@
         }
         function setM(m, id) { setChance(Math.floor(100/m), id); }
 
-        // ПЛАВНАЯ ПРОКРУТКА
         function startSpin() {
             if(spinning || selected.size !== 1) return;
             spinning = true;
@@ -282,15 +284,10 @@
                 if (!start) start = now;
                 const elapsed = now - start;
                 const progress = Math.min(elapsed / duration, 1);
-                
                 currentRot = startAngle + (totalRotation * easeOutQuart(progress));
                 document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
-
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    finish(currentRot % 360, item);
-                }
+                if (progress < 1) requestAnimationFrame(animate);
+                else finish(currentRot % 360, item);
             }
             requestAnimationFrame(animate);
         }
@@ -301,25 +298,24 @@
             const winSize = (chance / 100) * 360;
             const win = (deg >= (180 - winSize/2 - 6) && deg <= (180 + winSize/2 + 6));
             
-            const msg = document.getElementById('status-msg');
             if(win) {
                 const profit = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += profit; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += profit;
                 if(item.p > user.stats.best.p) user.stats.best = {n: item.n, p: item.p};
-                msg.innerText = "УСПЕХ"; msg.className = "win-glow";
-                spawnExplosion();
-                toast(`Успех! +${profit} ₴`);
+                document.getElementById('status-msg').innerText = "УСПЕХ";
+                document.getElementById('status-msg').className = "win-glow";
+                spawnExplosion(); toast(`Выиграно +${profit} ₴`);
             } else {
                 user.stats.lost += item.p;
                 user.inv = user.inv.filter(x => x.id !== item.id);
-                msg.innerText = "НЕУДАЧА"; msg.className = "loss-glow";
-                toast(`Слив! -${item.p} ₴`);
+                document.getElementById('status-msg').innerText = "НЕУДАЧА";
+                document.getElementById('status-msg').className = "loss-glow";
+                toast(`Проиграно -${item.p} ₴`);
             }
             selected.clear(); update();
         }
 
-        // МОДАЛКИ
         function openModal(text, action) {
             document.getElementById('modal-text').innerText = text;
             document.getElementById('modal-overlay').style.display = 'flex';
@@ -331,14 +327,14 @@
             pendingAction = null;
         }
 
-        // МАГАЗИН
         let shopItems = [];
         function refreshShop() {
-            const pool = ["Зуб", "Сердце", "Почка", "Мозг", "Глаз", "Челюсть"];
+            const bud = parseInt(document.getElementById('budget').value) || 50;
+            const pool = ["Зуб", "Кот", "Почка", "Мозг", "Глаз", "Заначка", "Цепь"];
             shopItems = Array.from({length:6}, (_,i) => ({
                 id:'s'+i, 
                 n: pool[Math.floor(Math.random()*pool.length)], 
-                p: Math.floor(50 + Math.random()*200)
+                p: Math.floor(bud + Math.random() * (bud * 0.5))
             }));
             const g = document.getElementById('shop-grid'); g.innerHTML = '';
             shopItems.forEach(i => {
@@ -353,10 +349,10 @@
             let sel = shopItems.filter(i => i.sel);
             if(!sel.length) return;
             let cost = sel.reduce((a, b) => a + b.p, 0);
-            openModal(`Купить ${sel.length} шт. за ${cost} ₴?`, () => {
-                if(user.bal < cost) return toast("Мало денег!");
+            openModal(`Купить за ${cost} ₴?`, () => {
+                if(user.bal < cost) return toast("Недостаточно денег!");
                 sel.forEach(i => { user.bal -= i.p; user.inv.push({...i, id: Date.now()+Math.random(), sel:false}); });
-                toast(`Куплено!`); refreshShop(); update();
+                toast("Куплено!"); refreshShop(); update();
             });
         }
 
@@ -364,17 +360,17 @@
             let sel = user.inv.filter(i => selected.has(i.id));
             if(!sel.length) return;
             let cost = sel.reduce((a, b) => a + b.p, 0);
-            openModal(`Продать выбранное за ${cost} ₴?`, () => {
+            openModal(`Продать за ${cost} ₴?`, () => {
                 user.inv = user.inv.filter(i => !selected.has(i.id));
-                user.bal += cost; toast(`Продано!`); selected.clear(); update();
+                user.bal += cost; selected.clear(); update();
             });
         }
 
         function askSellAll() {
             if(!user.inv.length) return;
             let cost = user.inv.reduce((a, b) => a + b.p, 0);
-            openModal(`Продать ВСЁ за ${cost} ₴?`, () => {
-                user.bal += cost; user.inv = []; toast(`Всё продано!`); update();
+            openModal(`Продать всё за ${cost} ₴?`, () => {
+                user.bal += cost; user.inv = []; update();
             });
         }
 
