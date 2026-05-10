@@ -167,7 +167,7 @@
             </div>
             <div id="inv-prof" class="grid" style="margin-top:15px"></div>
         </div>
-    </header>
+    </main>
 
     <script>
         const ITEMS_POOL = ["Зуб", "Мозг", "Чип", "Ключ", "Сердце", "Почка", "Диск", "Кольцо"];
@@ -269,7 +269,7 @@
         }
         function setM(m, id) { setChance(Math.floor(100/m), id); }
 
-        // ОБНОВЛЕННАЯ ФУНКЦИЯ ПРОКРУТКИ
+        // ИЗМЕНЕННАЯ АНИМАЦИЯ: ПАУЗА, РАЗГОН, РАННЕЕ И ДОЛГОЕ ТОРМОЖЕНИЕ
         function startSpin() {
             if(spinning || selected.size !== 1) return;
             spinning = true;
@@ -278,19 +278,19 @@
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = true);
             const item = user.inv.find(x => x.id === [...selected][0]);
             
-            // ПАУЗА ПЕРЕД СТАРТОМ 0.5 СЕК
+            // ПАУЗА 0.5 СЕК ПЕРЕД СТАРТОМ
             setTimeout(() => {
                 let start = null;
-                const dur = 3500; // Время прокрутки
-                const totalRot = 1440 + (Math.random() * 360); // 4 оборота + рандом
+                const dur = 5500; // Увеличено для затяжной остановки
+                const totalRot = 1800 + (Math.random() * 360); 
                 const sAng = currentRot;
 
                 function animate(now) {
                     if(!start) start = now;
                     let t = Math.min((now - start) / dur, 1);
                     
-                    // ЭФФЕКТ РАЗГОНА И ПЛАВНОГО ТОРМОЖЕНИЯ (easeInOutQuart)
-                    let ease = t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+                    // КРИВАЯ: Сверх-раннее замедление (Power 5)
+                    let ease = 1 - Math.pow(1 - t, 5); 
                     
                     currentRot = sAng + (ease * totalRot);
                     document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
@@ -306,10 +306,7 @@
             spinning = false; user.stats.ups++;
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = false);
             
-            // ХИТБОКС РЕГЕСТРАЦИИ: ТОЧНО ПО ВИЗУАЛУ ПАЛОЧКИ
             const winSize = (chance / 100) * 360;
-            // Центр зоны выигрыша находится на 180 градусах (низ круга)
-            // Добавляем погрешность в 1.5 градуса (ширина палочки)
             const win = (deg >= (180 - winSize/2 - 1.5) && deg <= (180 + winSize/2 + 1.5));
             
             const msg = document.getElementById('status-msg');
