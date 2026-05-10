@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V25 - FIX</title>
+    <title>UPGRADOR V25.1 Justice</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -84,8 +84,6 @@
         .modal-card { background: var(--panel); border: 2px solid var(--accent); border-radius: 15px; padding: 25px; width: 100%; max-width: 320px; text-align: center; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
-        .win-glow { color: var(--win); text-shadow: 0 0 20px var(--win), 0 0 40px var(--win); }
-        .loss-glow { color: var(--loss); text-shadow: 0 0 20px var(--loss), 0 0 40px var(--loss); }
     </style>
 </head>
 <body>
@@ -269,7 +267,7 @@
         }
         function setM(m, id) { setChance(Math.floor(100/m), id); }
 
-        // ИЗМЕНЕННАЯ АНИМАЦИЯ: ПАУЗА, РАЗГОН, РАННЕЕ И ДОЛГОЕ ТОРМОЖЕНИЕ
+        // ТОЧЕЧНОЕ ИЗМЕНЕНИЕ: ТЕПЕРЬ С ПЛАВНЫМ РАЗГОНОМ
         function startSpin() {
             if(spinning || selected.size !== 1) return;
             spinning = true;
@@ -281,7 +279,7 @@
             // ПАУЗА 0.5 СЕК ПЕРЕД СТАРТОМ
             setTimeout(() => {
                 let start = null;
-                const dur = 5500; // Увеличено для затяжной остановки
+                const dur = 5500; // Длительное время для затяжной остановки
                 const totalRot = 1800 + (Math.random() * 360); 
                 const sAng = currentRot;
 
@@ -289,8 +287,8 @@
                     if(!start) start = now;
                     let t = Math.min((now - start) / dur, 1);
                     
-                    // КРИВАЯ: Сверх-раннее замедление (Power 5)
-                    let ease = 1 - Math.pow(1 - t, 5); 
+                    // КРИВАЯ ДВИЖЕНИЯ (easeInOutQuint): Плавный разгон + Раннее и долгое торможение
+                    let ease = t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t;
                     
                     currentRot = sAng + (ease * totalRot);
                     document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
@@ -307,6 +305,7 @@
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = false);
             
             const winSize = (chance / 100) * 360;
+            // ХИТБОКС: Учитываем ширину палочки (1.5 градуса)
             const win = (deg >= (180 - winSize/2 - 1.5) && deg <= (180 + winSize/2 + 1.5));
             
             const msg = document.getElementById('status-msg');
@@ -314,7 +313,8 @@
                 const profit = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += profit; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += profit;
-                msg.innerText = "УСПЕХ"; msg.className = "win-glow"; spawnExplosion();
+                msg.innerText = "УСПЕХ"; msg.className = "win-glow";
+                spawnExplosion();
             } else {
                 user.stats.lost += item.p;
                 user.inv = user.inv.filter(x => x.id !== item.id);
