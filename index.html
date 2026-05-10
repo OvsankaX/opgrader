@@ -2,433 +2,374 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>ОПГРЕЙДОР V2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPGRADOR MOBILE</title>
     <style>
         :root {
-            --bg: #0a0a0a;
-            --panel: #121212;
+            --bg: #0d0d0d;
+            --panel: #1a1a1a;
             --accent: #a020f0;
-            --accent-glow: rgba(160, 32, 240, 0.6);
-            --white: #ffffff;
-            --gray: #444;
-            --win: #2ecc71;
-            --loss: #e74c3c;
+            --accent-glow: rgba(160, 32, 240, 0.4);
+            --white: #efefef;
+            --win: #00ff88;
+            --loss: #ff4d4d;
+            --radius: 15px;
         }
 
-        * { box-sizing: border-box; font-family: 'Lexend', sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--white); overflow-x: hidden; height: 100vh; }
+        * { box-sizing: border-box; font-family: 'Arial', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--white); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* Auth */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .auth-card { background: var(--panel); padding: 30px; border: 1px solid var(--accent); border-radius: 10px; width: 300px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid var(--gray); color: #fff; outline: none; }
-        input:focus { border-color: var(--accent); }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { background: var(--panel); padding: 30px; border-radius: var(--radius); border: 2px solid var(--accent); width: 100%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; outline: none; }
 
-        /* UI Structure */
-        header { height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; background: #000; border-bottom: 1px solid #111; }
-        .nav-icons { display: flex; gap: 25px; }
-        .icon-btn { cursor: pointer; font-size: 24px; transition: 0.3s; opacity: 0.6; }
-        .icon-btn:hover { opacity: 1; color: var(--accent); }
-        .balance-info { display: flex; align-items: center; gap: 15px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); background: #222; cursor: pointer; }
-
-        .container { max-width: 900px; margin: 0 auto; padding: 20px; display: none; }
-        h1.game-logo { text-align: center; font-size: 2rem; letter-spacing: 8px; margin-bottom: 20px; color: var(--white); }
-
-        /* Roulette Game */
-        .game-area { display: flex; flex-direction: column; align-items: center; }
-        .wheel-box { position: relative; width: 320px; height: 320px; margin: 20px auto; }
-        #canvas-particles { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
-        
-        .circle-bg { 
-            position: absolute; inset: 0; border-radius: 50%; border: 6px solid #1a1a1a; 
-            background: radial-gradient(circle, #111 0%, #000 100%);
-            overflow: hidden;
+        /* Header */
+        header { 
+            height: 60px; background: #111; display: flex; justify-content: space-between; 
+            align-items: center; padding: 0 15px; border-bottom: 1px solid #222; flex-shrink: 0;
         }
-        #wheel-zone {
-            position: absolute; bottom: 0; width: 100%; background: var(--accent);
-            box-shadow: 0 0 30px var(--accent-glow); transition: height 0.4s ease;
+        .header-logo { font-weight: 900; font-size: 1rem; color: var(--accent); letter-spacing: 2px; }
+        .nav-btn { font-size: 1.4rem; cursor: pointer; }
+        .balance-box { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+
+        /* Main Content */
+        main { flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        .container { display: none; width: 100%; max-width: 500px; margin: 0 auto; }
+
+        /* Roulette Zone */
+        .upgrade-section { display: flex; flex-direction: column; align-items: center; }
+        .wheel-container { 
+            position: relative; width: 280px; height: 280px; 
+            margin: 20px 0; border-radius: 50%; border: 8px solid #1a1a1a;
+            background: radial-gradient(circle, #151515, #000); overflow: hidden;
         }
-        .center-info {
+        #wheel-fill { 
+            position: absolute; bottom: 0; width: 100%; background: var(--accent); 
+            box-shadow: 0 0 40px var(--accent-glow); transition: height 0.3s ease; 
+        }
+        #cursor-line {
+            position: absolute; width: 6px; height: 30px; background: #fff;
+            border-radius: 10px; top: 10px; left: calc(50% - 3px);
+            transform-origin: 50% 130px; z-index: 10; box-shadow: 0 0 15px #fff;
+        }
+        .center-stat {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; z-index: 5;
+            text-align: center; z-index: 5; pointer-events: none;
         }
-        #pct-text { font-size: 3rem; font-weight: 800; }
-        #result-msg { font-size: 1.2rem; font-weight: bold; margin-top: 5px; min-height: 1.5em; }
+        #status-msg { height: 20px; font-size: 1.1rem; font-weight: bold; margin-top: 5px; }
 
-        #cursor {
-            position: absolute; width: 18px; height: 18px; background: var(--accent);
-            border: 3px solid #fff; border-radius: 50%; top: -6px; left: 50%;
-            transform: translateX(-50%); z-index: 15; box-shadow: 0 0 15px var(--accent);
+        /* Particles */
+        #p-canvas { position: absolute; inset: 0; z-index: 11; pointer-events: none; }
+
+        /* Buttons & Grid */
+        .btn-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 15px 0; }
+        .opt-btn { background: #222; border: 1px solid #333; color: #fff; padding: 10px 15px; border-radius: 8px; min-width: 60px; font-weight: bold; }
+        .action-btn { 
+            width: 100%; padding: 18px; background: var(--accent); border: none; 
+            border-radius: var(--radius); color: #fff; font-size: 1.2rem; font-weight: bold;
+            box-shadow: 0 5px 15px var(--accent-glow); margin-top: 10px;
         }
+        .action-btn:disabled { opacity: 0.5; box-shadow: none; }
 
-        .main-action-btn {
-            padding: 18px 60px; background: var(--accent); border: none; border-radius: 4px;
-            color: #fff; font-weight: bold; cursor: pointer; margin-top: 30px;
-            box-shadow: 0 0 25px var(--accent-glow); transition: 0.3s;
+        .item-frame {
+            border: 2px solid #222; border-radius: var(--radius); padding: 15px;
+            background: var(--panel); text-align: center; transition: 0.2s;
         }
-        .main-action-btn:active { transform: scale(0.95); }
-        .main-action-btn:disabled { background: #333; box-shadow: none; }
+        .item-frame.selected { border-color: var(--accent); background: #201030; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .price { color: var(--win); font-weight: bold; margin-top: 5px; }
 
-        .control-rows { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
-        .btn-row { display: flex; gap: 10px; }
-        .sub-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px 16px; cursor: pointer; transition: 0.2s; }
-        .sub-btn:hover { border-color: var(--accent); }
-
-        /* Inventory & Shop Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 20px; }
-        .item-card { 
-            background: var(--panel); border: 1px solid #222; padding: 15px; text-align: center; 
-            cursor: pointer; position: relative; transition: 0.2s;
-        }
-        .item-card.selected { border-color: var(--accent); box-shadow: inset 0 0 15px var(--accent-glow); }
-        .price-tag { color: #2ecc71; font-weight: bold; margin-top: 8px; }
-
+        /* Stats in profile */
+        .stats-card { background: #111; border-radius: var(--radius); padding: 20px; margin-bottom: 15px; border: 1px solid #222; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="auth-card">
-            <h2 style="margin-bottom: 20px;">ОПГРЕЙДОР</h2>
-            <input type="text" id="login-input" placeholder="Юзернейм">
-            <input type="password" id="pass-input" placeholder="Пароль">
-            <button class="main-action-btn" style="width: 100%; margin-top: 10px;" onclick="initUser()">ВХОД / РЕГА</button>
+            <h1 style="color:var(--accent); margin-bottom: 15px;">ОПГРЕЙДОР</h1>
+            <input type="text" id="user-in" placeholder="Твой ник">
+            <input type="password" id="pass-in" placeholder="Пароль">
+            <button class="action-btn" onclick="login()">ВОЙТИ</button>
         </div>
     </div>
 
-    <div id="app" style="display: none;">
-        <header>
-            <div class="nav-icons">
-                <span class="icon-btn" onclick="showTab('main')">🎲</span>
-                <span class="icon-btn" onclick="showTab('shop')">🛒</span>
-            </div>
-            <div class="balance-info">
-                <span id="balance-val" style="color:var(--accent); font-weight:bold;">1000</span> ₴
-                <div class="avatar" onclick="showTab('profile')"></div>
-            </div>
-        </header>
+    <header>
+        <div class="nav-btn" onclick="showPage('shop')">🛒</div>
+        <div class="header-logo">ОПГРЕЙДОР</div>
+        <div class="balance-box">
+            <span id="bal">0</span> ₴
+            <div class="nav-btn" onclick="showPage('profile')">👤</div>
+        </div>
+    </header>
 
-        <div id="tab-main" class="container" style="display: block;">
-            <h1 class="game-logo">ОПГРЕЙДОР</h1>
-            <div class="game-area">
-                <div class="wheel-box">
-                    <canvas id="canvas-particles"></canvas>
-                    <div class="circle-bg">
-                        <div id="wheel-zone" style="height: 10%;"></div>
-                    </div>
-                    <div id="cursor"></div>
-                    <div class="center-info">
-                        <div id="pct-text">10%</div>
-                        <div id="result-msg"></div>
+    <main>
+        <!-- Главная -->
+        <div id="p-main" class="container" style="display: block;">
+            <div class="upgrade-section">
+                <div class="wheel-container">
+                    <canvas id="p-canvas"></canvas>
+                    <div id="wheel-fill" style="height: 10%;"></div>
+                    <div id="cursor-line"></div>
+                    <div class="center-stat">
+                        <h2 id="pct-view" style="font-size: 2.5rem;">10%</h2>
+                        <div id="status-msg"></div>
                     </div>
                 </div>
 
-                <button class="main-action-btn" id="spin-btn" onclick="runUpgrade()">ПРОКАЧАТЬ</button>
-
-                <div class="control-rows">
-                    <div class="btn-row">
-                        <button class="sub-btn" onclick="setMultiplier(2)">x2</button>
-                        <button class="sub-btn" onclick="setMultiplier(4)">x4</button>
-                        <button class="sub-btn" onclick="setMultiplier(8)">x8</button>
-                    </div>
-                    <div class="btn-row">
-                        <button class="sub-btn" onclick="setChance(35)">35%</button>
-                        <button class="sub-btn" onclick="setChance(55)">55%</button>
-                        <button class="sub-btn" onclick="setChance(75)">75%</button>
-                    </div>
+                <div class="btn-grid">
+                    <button class="opt-btn" onclick="setM(2)">x2</button>
+                    <button class="opt-btn" onclick="setM(4)">x4</button>
+                    <button class="opt-btn" onclick="setM(10)">x10</button>
+                    <button class="opt-btn" onclick="setChance(35)">35%</button>
+                    <button class="opt-btn" onclick="setChance(55)">55%</button>
+                    <button class="opt-btn" onclick="setChance(85)">85%</button>
                 </div>
 
-                <div style="width: 100%; margin-top: 40px;">
-                    <h3>ВЫБЕРИ ПРЕДМЕТ ДЛЯ АПГРЕЙДА</h3>
-                    <div id="main-inv-grid" class="grid"></div>
+                <button class="action-btn" id="go-btn" onclick="startSpin()">ПРОКАЧАТЬ</button>
+
+                <div style="width: 100%; margin-top: 30px;">
+                    <h3 style="margin-bottom: 10px;">Твой инвентарь:</h3>
+                    <div id="inv-main" class="grid"></div>
                 </div>
             </div>
         </div>
 
-        <div id="tab-shop" class="container">
-            <h1 class="game-logo">МАГАЗИН ХЛАМА</h1>
-            <div style="display:flex; gap: 10px; justify-content: center; align-items: center;">
-                <input type="number" id="shop-filter" placeholder="Цена около..." style="width: 150px;">
-                <button class="sub-btn" onclick="generateShop()">ПОИСК</button>
+        <!-- Магазин -->
+        <div id="p-shop" class="container">
+            <h2 style="margin-bottom: 15px;">МАГАЗИН ХЛАМА</h2>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="budget" placeholder="Бюджет ₴" style="margin:0;">
+                <button class="opt-btn" onclick="refreshShop()">ПОИСК</button>
             </div>
             <div id="shop-grid" class="grid"></div>
-            <center><button class="main-action-btn" onclick="buySelected()">КУПИТЬ ВЫБРАННОЕ</button></center>
+            <button class="action-btn" onclick="buyAllSelected()">КУПИТЬ ВЫБРАННОЕ</button>
+            <button class="opt-btn" style="width:100%; margin-top:10px;" onclick="showPage('main')">НАЗАД</button>
         </div>
 
-        <div id="tab-profile" class="container">
-            <h1 class="game-logo">ПРОФИЛЬ</h1>
-            <div id="user-stats" style="background: var(--panel); padding: 20px; border-radius: 8px; margin-bottom: 20px; line-height: 1.8;"></div>
-            <div class="btn-row" style="margin-bottom: 20px;">
-                <button class="sub-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ</button>
-                <button class="sub-btn" onclick="sellAll()">ПРОДАТЬ ВСЕ</button>
+        <!-- Профиль -->
+        <div id="p-profile" class="container">
+            <h2>ПРОФИЛЬ</h2>
+            <div id="stat-box" class="stats-card"></div>
+            <div class="btn-grid">
+                <button class="opt-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ</button>
+                <button class="opt-btn" onclick="sellAll()">ПРОДАТЬ ВСЕ</button>
             </div>
-            <div id="prof-inv-grid" class="grid"></div>
+            <div id="inv-prof" class="grid"></div>
+            <button class="action-btn" onclick="showPage('main')">НАЗАД</button>
         </div>
-    </div>
+    </main>
 
     <script>
-        // Константы
-        const POOL = ["Сифилис", "Герпес", "Почка соседа", "Девственность", "Левое яйцо", "Печень алкоголика", "Мамкина заначка", "Хвост бобра", "Золотой зуб", "Яйца судьбы", "Сердце бывшего", "Мозг хлебушка"];
+        const ITEMS = ["Сифилис", "Герпес", "Почка соседа", "Девственность", "Правое яйцо", "Печень алкоголика", "Мамкина заначка", "Хромосома", "Золотой зуб", "Сердце бывшего", "Мозг хлебушка"];
         
-        let userData = {
-            name: "", balance: 1000, inventory: [],
-            stats: { count: 0, lost: 0, bestName: "-", bestPrice: 0 }
+        let user = {
+            name: "", bal: 1000, inv: [],
+            stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} }
         };
 
-        let currentChance = 10;
-        let selectedIds = new Set();
-        let isRunning = false;
+        let chance = 10;
+        let selected = new Set();
+        let spinning = false;
 
-        // Инициализация
-        function initUser() {
-            const login = document.getElementById('login-input').value;
-            if(!login) return alert("Введи имя!");
-            
-            const saved = localStorage.getItem('upgr_user_' + login);
-            if(saved) userData = JSON.parse(saved);
+        function login() {
+            const n = document.getElementById('user-in').value;
+            if(!n) return;
+            const s = localStorage.getItem('upg_v3_'+n);
+            if(s) user = JSON.parse(s);
             else {
-                userData.name = login;
-                userData.inventory = [
-                    {id: 1, name: "Твои яйца", price: 100},
-                    {id: 2, name: "Девственность", price: 250},
-                    {id: 3, name: "Аппендикс", price: 50}
-                ];
+                user.name = n;
+                user.inv = [{id:1, n:"Твои яйца", p:100}, {id:2, n:"Аппендикс", p:50}];
             }
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
-            updateUI();
+            document.getElementById('auth-screen').style.display='none';
+            update();
         }
 
-        function save() { localStorage.setItem('upgr_user_' + userData.name, JSON.stringify(userData)); }
+        function save() { localStorage.setItem('upg_v3_'+user.name, JSON.stringify(user)); }
 
-        function updateUI() {
-            document.getElementById('balance-val').innerText = Math.floor(userData.balance);
-            renderGrid('main-inv-grid', userData.inventory);
-            renderGrid('prof-inv-grid', userData.inventory);
+        function update() {
+            document.getElementById('bal').innerText = Math.floor(user.bal);
+            renderInv('inv-main', true);
+            renderInv('inv-prof', false);
             renderStats();
             save();
         }
 
-        function renderGrid(containerId, items) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            items.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `item-card ${selectedIds.has(item.id) ? 'selected' : ''}`;
-                div.innerHTML = `<div>${item.name}</div><div class="price-tag">${item.price} ₴</div>`;
-                div.onclick = () => {
-                    if(selectedIds.has(item.id)) selectedIds.delete(item.id);
-                    else selectedIds.add(item.id);
-                    updateUI();
+        function renderInv(id, single) {
+            const g = document.getElementById(id); g.innerHTML = '';
+            user.inv.forEach(i => {
+                const d = document.createElement('div');
+                d.className = `item-frame ${selected.has(i.id) ? 'selected' : ''}`;
+                d.innerHTML = `<div>${i.n}</div><div class="price">${i.p} ₴</div>`;
+                d.onclick = () => {
+                    if(single) selected.clear(); 
+                    if(selected.has(i.id)) selected.delete(i.id);
+                    else selected.add(i.id);
+                    update();
                 };
-                container.appendChild(div);
+                g.appendChild(d);
             });
         }
 
         function renderStats() {
-            document.getElementById('user-stats').innerHTML = `
-                <b>Игрок:</b> ${userData.name} <br>
-                <b>Всего апгрейдов:</b> ${userData.stats.count} <br>
-                <b>Слито денег:</b> <span style="color:red">${userData.stats.lost} ₴</span> <br>
-                <b>Лучший предмет:</b> ${userData.stats.bestName} (${userData.stats.bestPrice} ₴)
+            document.getElementById('stat-box').innerHTML = `
+                Игрок: <b>${user.name}</b><br>
+                Апгрейдов: ${user.stats.ups}<br>
+                Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
+                Заработано: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
+                Топ дроп: ${user.stats.best.n} (${user.stats.best.p} ₴)
             `;
         }
 
-        function showTab(tab) {
-            ['main', 'shop', 'profile'].forEach(t => document.getElementById('tab-'+t).style.display = 'none');
-            document.getElementById('tab-'+tab).style.display = 'block';
-            selectedIds.clear();
-            updateUI();
+        function showPage(p) {
+            ['main','shop','profile'].forEach(x => document.getElementById('p-'+x).style.display='none');
+            document.getElementById('p-'+p).style.display='block';
+            selected.clear();
+            if(p === 'shop') refreshShop();
+            update();
         }
 
-        // Логика игры
         function setChance(c) {
-            if(isRunning) return;
-            currentChance = c;
-            document.getElementById('wheel-zone').style.height = c + '%';
-            document.getElementById('pct-text').innerText = c + '%';
+            if(spinning) return;
+            chance = c;
+            document.getElementById('wheel-fill').style.height = c + '%';
+            document.getElementById('pct-view').innerText = c + '%';
         }
+        function setM(m) { setChance(Math.floor(100/m)); }
 
-        function setMultiplier(m) {
-            setChance(Math.floor(100 / m));
-        }
+        function startSpin() {
+            if(spinning || selected.size !== 1) return;
+            spinning = true;
+            document.getElementById('go-btn').disabled = true;
+            document.getElementById('status-msg').innerText = '';
 
-        function runUpgrade() {
-            if(isRunning) return;
-            if(selectedIds.size !== 1) return alert("Выбери 1 предмет!");
+            const itId = [...selected][0];
+            const idx = user.inv.findIndex(x => x.id === itId);
+            const item = user.inv[idx];
 
-            const itemId = Array.from(selectedIds)[0];
-            const itemIdx = userData.inventory.findIndex(i => i.id === itemId);
-            const item = userData.inventory[itemIdx];
-
-            isRunning = true;
-            document.getElementById('spin-btn').disabled = true;
-            document.getElementById('result-msg').innerText = '';
-
-            const cursor = document.getElementById('cursor');
             let start = Date.now();
-            const duration = 5000; // 5 секунд кручения
-            const totalRotation = (Math.random() * 360) + 2880; // 8 полных кругов + рандом
+            const dur = 6000;
+            const targetRot = 1800 + Math.random()*360; // 5 кругов + рандом
 
-            function frame() {
-                let now = Date.now();
-                let t = (now - start) / duration;
-                if (t > 1) t = 1;
+            function animate() {
+                let t = (Date.now() - start) / dur;
+                if(t > 1) t = 1;
 
-                // Замедление
-                let ease = 1 - Math.pow(1 - t, 4);
-                let currentAngle = (ease * totalRotation) % 360;
+                // Сложная кривая: медленно -> быстро -> медленно
+                let ease = t < 0.2 ? 2.5 * t * t : 1 - Math.pow(1 - t, 3); 
+                // Упростим для JS плавности
+                let currentRot = ease * targetRot;
 
-                // Движение курсора по кругу
-                let rad = (currentAngle - 90) * (Math.PI / 180);
-                let x = 160 + 152 * Math.cos(rad);
-                let y = 160 + 152 * Math.sin(rad);
-                cursor.style.left = x + 'px';
-                cursor.style.top = y + 'px';
+                document.getElementById('cursor-line').style.transform = `rotate(${currentRot}deg)`;
 
-                if (t < 1) requestAnimationFrame(frame);
-                else checkWin(currentAngle, item, itemIdx);
+                if(t < 1) requestAnimationFrame(animate);
+                else finish(currentRot % 360, item, idx);
             }
-            requestAnimationFrame(frame);
+            animate();
         }
 
-        function checkWin(angle, item, idx) {
-            isRunning = false;
-            document.getElementById('spin-btn').disabled = false;
+        function finish(deg, item, idx) {
+            spinning = false;
+            document.getElementById('go-btn').disabled = false;
 
-            // Зона выигрыша: так как наполнение снизу, 
-            // это углы от (180 - шанс*1.8) до (180 + шанс*1.8) примерно
-            // Но сделаем проще и честнее для визуала:
-            // Внизу круга (180 градусов) центр зоны. 
-            const halfZone = (currentChance / 100) * 180;
-            const winRange = [180 - halfZone, 180 + halfZone];
-            
-            const isWin = angle >= winRange[0] && angle <= winRange[1];
-            const msg = document.getElementById('result-msg');
+            // Зона выигрыша (внизу круга, т.к. фиолетовое растет снизу)
+            const zoneWidth = (chance / 100) * 180;
+            const isWin = (deg >= 180 - zoneWidth && deg <= 180 + zoneWidth);
+            const msg = document.getElementById('status-msg');
 
             if(isWin) {
-                const mult = 100 / currentChance;
-                const newPrice = Math.floor(item.price * mult);
-                userData.inventory[idx] = { id: Date.now(), name: "★ " + item.name, price: newPrice };
-                if(newPrice > userData.stats.bestPrice) {
-                    userData.stats.bestPrice = newPrice;
-                    userData.stats.bestName = userData.inventory[idx].name;
-                }
-                msg.innerText = "ПОБЕДА";
-                msg.style.color = "var(--win)";
-                spawnParticles();
+                const profit = Math.floor(item.p * (100/chance)) - item.p;
+                const newP = item.p + profit;
+                user.inv[idx] = {id: Date.now(), n: "★ " + item.n, p: newP};
+                user.stats.earned += profit;
+                if(newP > user.stats.best.p) user.stats.best = {n: user.inv[idx].n, p: newP};
+                msg.innerText = "ПОБЕДА"; msg.style.color = "var(--win)";
+                boom();
             } else {
-                userData.stats.lost += item.price;
-                userData.inventory.splice(idx, 1);
-                msg.innerText = "НЕ БЕДА";
-                msg.style.color = "var(--loss)";
+                user.stats.lost += item.p;
+                user.inv.splice(idx, 1);
+                msg.innerText = "НЕ БЕДА"; msg.style.color = "var(--loss)";
             }
-            userData.stats.count++;
-            selectedIds.clear();
-            updateUI();
+            user.stats.ups++;
+            selected.clear();
+            update();
         }
 
-        // Частицы
-        function spawnParticles() {
-            const canvas = document.getElementById('canvas-particles');
+        function boom() {
+            const canvas = document.getElementById('p-canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 320; canvas.height = 320;
-            let parts = [];
-            for(let i=0; i<30; i++) {
-                parts.push({
-                    x: 160, y: 160,
-                    vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
-                    r: Math.random()*4+2, life: 1
+            canvas.width = 280; canvas.height = 280;
+            let particles = [];
+            for(let i=0; i<50; i++) {
+                particles.push({
+                    x: 140, y: 140,
+                    vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4,
+                    r: Math.random()*3+2, l: 1
                 });
             }
             function draw() {
-                ctx.clearRect(0,0,320,320);
-                parts.forEach((p, i) => {
-                    p.x += p.vx; p.y += p.vy; p.life -= 0.02;
-                    ctx.fillStyle = `rgba(160, 32, 240, ${p.life})`;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-                    if(p.life <= 0) parts.splice(i, 1);
+                ctx.clearRect(0,0,280,280);
+                particles.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy; p.l -= 0.005; // Медленное исчезновение
+                    ctx.fillStyle = `rgba(160, 32, 240, ${p.l})`;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
+                    if(p.l <= 0) particles.splice(i, 1);
                 });
-                if(parts.length > 0) requestAnimationFrame(draw);
+                if(particles.length > 0) requestAnimationFrame(draw);
             }
             draw();
         }
 
-        // Магазин
-        let shopItems = [];
-        function generateShop() {
-            const val = parseInt(document.getElementById('shop-filter').value) || 100;
-            shopItems = [];
-            for(let i=0; i<8; i++) {
-                shopItems.push({
-                    id: 'shop_'+i,
-                    name: POOL[Math.floor(Math.random()*POOL.length)],
-                    price: Math.floor(val * (0.7 + Math.random()*0.6))
-                });
+        // Shop logic
+        let shopPool = [];
+        function refreshShop() {
+            const b = parseInt(document.getElementById('budget').value) || 200;
+            shopPool = [];
+            for(let i=0; i<6; i++) {
+                shopPool.push({id: 's'+i, n: ITEMS[Math.floor(Math.random()*ITEMS.length)], p: Math.floor(b * (0.5 + Math.random()))});
             }
-            const grid = document.getElementById('shop-grid');
-            grid.innerHTML = '';
-            shopItems.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `item-card ${selectedIds.has(item.id) ? 'selected' : ''}`;
-                div.innerHTML = `<div>${item.name}</div><div class="price-tag">${item.price} ₴</div>`;
-                div.onclick = () => {
-                    if(selectedIds.has(item.id)) selectedIds.delete(item.id);
-                    else selectedIds.add(item.id);
-                    renderShopOnly();
+            const g = document.getElementById('shop-grid'); g.innerHTML = '';
+            shopPool.forEach(i => {
+                const d = document.createElement('div');
+                d.className = `item-frame ${selected.has(i.id) ? 'selected' : ''}`;
+                d.innerHTML = `<div>${i.n}</div><div class="price">${i.p} ₴</div>`;
+                d.onclick = () => {
+                    if(selected.has(i.id)) selected.delete(i.id); else selected.add(i.id);
+                    refreshShopUI();
                 };
-                grid.appendChild(div);
+                g.appendChild(d);
             });
         }
-
-        function renderShopOnly() {
-            const cards = document.querySelectorAll('#shop-grid .item-card');
-            shopItems.forEach((item, i) => {
-                cards[i].className = `item-card ${selectedIds.has(item.id) ? 'selected' : ''}`;
+        function refreshShopUI() {
+            const cards = document.querySelectorAll('#shop-grid .item-frame');
+            shopPool.forEach((item, i) => {
+                cards[i].className = `item-frame ${selected.has(item.id) ? 'selected' : ''}`;
             });
         }
-
-        function buySelected() {
-            let total = 0;
-            const toAdd = [];
-            shopItems.forEach(item => {
-                if(selectedIds.has(item.id)) {
-                    total += item.price;
-                    toAdd.push({...item, id: Date.now() + Math.random()});
-                }
-            });
-            if(total > userData.balance) return alert("Мало грошей!");
-            if(toAdd.length === 0) return;
-
-            if(confirm(`Купить ${toAdd.length} предметов за ${total} ₴?`)) {
-                userData.balance -= total;
-                userData.inventory.push(...toAdd);
-                selectedIds.clear();
-                showTab('main');
-            }
+        function buyAllSelected() {
+            let cost = 0; let count = 0;
+            shopPool.forEach(i => { if(selected.has(i.id)) { cost += i.p; count++; } });
+            if(cost > user.bal) return alert("Грошей нема!");
+            if(count === 0) return;
+            user.bal -= cost;
+            shopPool.forEach(i => { if(selected.has(i.id)) user.inv.push({id: Date.now()+Math.random(), n: i.n, p: i.p}); });
+            selected.clear();
+            showPage('main');
         }
 
-        // Продажа
         function sellSelected() {
-            let total = 0;
-            userData.inventory = userData.inventory.filter(item => {
-                if(selectedIds.has(item.id)) { total += item.price; return false; }
+            user.inv = user.inv.filter(i => {
+                if(selected.has(i.id)) { user.bal += i.p; return false; }
                 return true;
             });
-            userData.balance += total;
-            selectedIds.clear();
-            updateUI();
+            selected.clear(); update();
         }
-
         function sellAll() {
-            if(!confirm("Реально всё продать?")) return;
-            let total = userData.inventory.reduce((sum, i) => sum + i.price, 0);
-            userData.balance += total;
-            userData.inventory = [];
-            selectedIds.clear();
-            updateUI();
+            user.inv.forEach(i => user.bal += i.p);
+            user.inv = []; selected.clear(); update();
         }
     </script>
 </body>
 </html>
+
