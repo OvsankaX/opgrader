@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V25 — плавная рулетка 60fps</title>
+    <title>UPGRADOR V25 — КОЛЕСО БОЛЕЗНЕЙ</title>
     <style>
         :root {
-            --bg: #0a0a12; --panel: #13131f; --accent: #a855f7;
-            --accent2: #7c3aed;
-            --accent-glow: rgba(168, 85, 247, 0.75);
-            --accent-glow2: rgba(124, 58, 237, 0.5);
+            --bg: #0a0a12; --panel: #13131f; --accent: #f755a8; /* изменен оттенок на более "болезненный" */
+            --accent2: #ed3a7c;
+            --accent-glow: rgba(247, 85, 168, 0.75);
+            --accent-glow2: rgba(237, 58, 124, 0.5);
             --win: #34d399; --loss: #f87171; --radius: 12px;
         }
 
@@ -67,7 +67,7 @@
             width: 168px; height: 168px; border-radius: 50%;
             background: radial-gradient(circle at 40% 35%, #1a1030, #0a0a16);
             border: 1px solid #2a1f45;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.7), 0 0 18px rgba(168,85,247,0.12);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.7), 0 0 18px rgba(247,85,168,0.12);
             display: flex; align-items: center; justify-content: center; flex-direction: column;
             z-index: 5;
         }
@@ -102,7 +102,7 @@
             text-align: center; cursor: pointer; transition: 0.2s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
-        .item-frame.selected { border-color: var(--accent); box-shadow: 0 0 14px var(--accent-glow), 0 0 28px rgba(168,85,247,0.15); }
+        .item-frame.selected { border-color: var(--accent); box-shadow: 0 0 14px var(--accent-glow), 0 0 28px rgba(247,85,168,0.15); }
         .price { font-weight: bold; color: var(--win); margin-top: 4px; }
 
         /* === PROFILE CARD === */
@@ -140,12 +140,12 @@
         }
         .inv-balance-badge {
             font-size: 0.82rem; font-weight: 800; color: #fff;
-            background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
+            background: rgba(247,85,168,0.1); border: 1px solid rgba(247,85,168,0.25);
             border-radius: 8px; padding: 4px 10px;
         }
         .inv-divider {
             width: 100%; height: 1px;
-            background: linear-gradient(90deg, transparent, #3a2a6a 20%, #6d3aed 50%, #3a2a6a 80%, transparent);
+            background: linear-gradient(90deg, transparent, #6a2a4a 20%, #ed3a7c 50%, #6a2a4a 80%, transparent);
         }
         .inv-grid-wrap { padding: 12px; }
 
@@ -162,7 +162,7 @@
             background: linear-gradient(145deg, #1a1a2e, #13131f);
             border: 2px solid var(--accent); border-radius: 15px; padding: 25px;
             width: 100%; max-width: 320px; text-align: center;
-            box-shadow: 0 0 30px var(--accent-glow), 0 0 60px rgba(168,85,247,0.1);
+            box-shadow: 0 0 30px var(--accent-glow), 0 0 60px rgba(247,85,168,0.1);
             animation: modalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) forwards;
         }
         .modal-card.closing { animation: modalOut 0.18s cubic-bezier(0.55,0,1,0.45) forwards; }
@@ -215,11 +215,11 @@
                         <div id="status-msg"></div>
                     </div>
                 </div>
-                <!-- Стрелка курcора с улучшенным свечением -->
+                <!-- Стрелка курсора с улучшенным свечением -->
                 <svg id="cursor-svg" style="position:absolute;inset:0;width:240px;height:240px;z-index:20;pointer-events:none;" viewBox="0 0 240 240">
                     <line id="cursor-line-svg" x1="120" y1="5" x2="120" y2="35"
                         stroke="white" stroke-width="4" stroke-linecap="round"
-                        style="filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #a855f7) drop-shadow(0 0 6px #7c3aed);
+                        style="filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #f755a8) drop-shadow(0 0 6px #ed3a7c);
                                transform-origin:120px 120px; transform:rotate(0deg);
                                transition: none;"/>
                 </svg>
@@ -238,7 +238,7 @@
         <button class="action-btn" id="go-btn" onclick="startSpin()" disabled>ПРОКРУТИТЬ</button>
         <div class="inv-frame">
             <div class="inv-header">
-                <span class="inv-frame-label">ИНВЕНТАРЬ</span>
+                <span class="inv-frame-label">КОЛЛЕКЦИЯ ЗАРАЗ</span>
                 <span class="inv-balance-badge" id="inv-main-balance">0 ₴</span>
             </div>
             <div class="inv-divider"></div>
@@ -247,9 +247,9 @@
     </div>
 
     <div id="p-shop" class="container">
-        <h3>МАГАЗИН</h3>
+        <h3>ЧЕРНЫЙ РЫНОК ЛЕЧЕНИЯ</h3>
         <div style="display:flex;gap:8px;margin-bottom:15px;">
-            <input type="number" id="budget" placeholder="Мин. цена..." style="flex:1;padding:12px;background:#07070f;border:1px solid #2a2a45;color:#fff;border-radius:8px;outline:none;">
+            <input type="number" id="budget" placeholder="Мин. стоимость..." style="flex:1;padding:12px;background:#07070f;border:1px solid #2a2a45;color:#fff;border-radius:8px;outline:none;">
             <button class="opt-btn" style="flex:0.4" onclick="refreshShop()">ПОИСК</button>
         </div>
         <div id="shop-grid" class="grid" style="padding-bottom:10px;"></div>
@@ -258,7 +258,7 @@
 
     <div id="p-profile" class="container">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;">
-            <h3>ПРОФИЛЬ</h3>
+            <h3>ПРОФИЛЬ НОСИТЕЛЯ</h3>
         </div>
         <div class="prof-card">
             <div class="prof-row">
@@ -270,20 +270,20 @@
                 <div id="prof-bal-display">0 ₴</div>
             </div>
             <div class="prof-row">
-                <div class="field-label">АПГРЕЙДОВ:</div>
+                <div class="field-label">УРОНОСИТЕЛЬСТВ:</div>
                 <div id="prof-ups-display">0</div>
             </div>
-            <div class="field-label" style="margin-top: 8px; margin-bottom: 2px;">ИСТОРИЯ БАЛАНСА:</div>
+            <div class="field-label" style="margin-top: 8px; margin-bottom: 2px;">БАЛАНС ИСТОРИИ:</div>
             <div id="prof-total" class="prof-total-val">0 ₴</div>
             <div class="prof-sub-line" id="prof-sub-stats"></div>
         </div>
         <div class="btn-row">
-            <button class="sell-btn" onclick="askSellSelected()">ПРОДАТЬ ВЫБОР</button>
-            <button class="sell-btn" onclick="askSellAll()">ПРОДАТЬ ВСЁ</button>
+            <button class="sell-btn" onclick="askSellSelected()">ВЫЛЕЧИТЬ ВЫБРАННОЕ</button>
+            <button class="sell-btn" onclick="askSellAll()">ВЫЛЕЧИТЬ ВСЁ</button>
         </div>
         <div class="inv-frame" style="margin-top:10px;">
             <div class="inv-header">
-                <span class="inv-frame-label">ИНВЕНТАРЬ</span>
+                <span class="inv-frame-label">АКТИВНЫЕ ИНФЕКЦИИ</span>
                 <span class="inv-balance-badge" id="inv-balance-display">0 ₴</span>
             </div>
             <div class="inv-divider"></div>
@@ -316,15 +316,15 @@ function drawDonutRaw(pct) {
     dCtx.save();
     dCtx.beginPath();
     dCtx.arc(CX,CY,R,arcStart,arcEnd);
-    dCtx.strokeStyle='rgba(168,85,247,0.22)';
+    dCtx.strokeStyle='rgba(247,85,168,0.22)';
     dCtx.lineWidth=RING+14;
     dCtx.lineCap='butt';
     dCtx.stroke();
     dCtx.restore();
     const grad=dCtx.createLinearGradient(CX,CY+R,CX,CY-R);
-    grad.addColorStop(0,'#5b21b6');
-    grad.addColorStop(0.5,'#a855f7');
-    grad.addColorStop(1,'#e9d5ff');
+    grad.addColorStop(0,'#b6215e');
+    grad.addColorStop(0.5,'#f755a8');
+    grad.addColorStop(1,'#ffb3d9');
     dCtx.beginPath();
     dCtx.arc(CX,CY,R,arcStart,arcEnd);
     dCtx.strokeStyle=grad;
@@ -373,7 +373,7 @@ function spawnExplosion(){
         const a=Math.random()*Math.PI*2, s=1.5+Math.random()*7;
         particles.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,
             size:Math.random()*5+2,
-            color:Math.random()>0.4?'#a855f7':(Math.random()>0.5?'#34d399':'#c084fc'),
+            color:Math.random()>0.4?'#f755a8':(Math.random()>0.5?'#34d399':'#ff69b4'),
             gravity:0.06});
     }
 }
@@ -445,16 +445,27 @@ function closeModal(confirm){
     pendingAction=null;
 }
 
-const ITEMS_POOL=["Зуб","Мозг","Чип","Ключ","Сердце","Почка","Диск","Кольцо"];
+// НОВЫЙ ПУЛ - ВЕНЕРИЧЕСКИЕ ЗАБОЛЕВАНИЯ И ДРУГИЕ "ПРИКОЛЫ"
+const ITEMS_POOL = [
+    "Сифилис", "Гонорея", "Хламидиоз", "ВИЧ", "Гепатит B", 
+    "Гепатит C", "Папилломавирус", "Герпес", "Трихомониаз", 
+    "Уреаплазмоз", "Микоплазмоз", "Чесотка", "Лобковый педикулез"
+];
+
 let user={name:"",bal:1000,inv:[],stats:{ups:0,lost:0,earned:0}};
 let chance=10,selected=new Set(),spinning=false;
 
 function login(){
     const n=document.getElementById('user-in').value.trim(); if(!n)return;
     const saved=localStorage.getItem('upg_v25_'+n);
-    if(saved) user=JSON.parse(saved); else{ user.name=n; user.inv=[{id:1,n:"Кейс",p:100}]; user.stats={ups:0,lost:0,earned:0}; }
+    if(saved) user=JSON.parse(saved); else{ 
+        user.name=n; 
+        // Стартовый набор случайных болезней
+        const startItem = { id:1, n: ITEMS_POOL[Math.floor(Math.random() * ITEMS_POOL.length)], p: 100 };
+        user.inv=[startItem]; 
+        user.stats={ups:0,lost:0,earned:0}; 
+    }
     document.getElementById('auth-screen').style.display='none';
-    // добавляем баланс и статы, если их нет в старом сохранении
     if(user.stats===undefined) user.stats={ups:0,lost:0,earned:0};
     if(user.bal===undefined) user.bal=1000;
     update();
@@ -572,15 +583,15 @@ function finish(deg,item){
     if(win){
         const profit=Math.floor(item.p*(100/chance))-item.p;
         item.p+=profit; 
-        if(item.n.startsWith("★ ")) item.n=item.n.replace("★ ","");
-        else item.n="★ "+item.n;
+        if(item.n.startsWith("💉 ")) item.n=item.n.replace("💉 ","");
+        else item.n="💉 "+item.n;
         user.stats.earned+=profit;
-        msg.innerText="УСПЕХ"; msg.className="win-glow"; spawnExplosion();
+        msg.innerText="ИЗЛЕЧЕНИЕ"; msg.className="win-glow"; spawnExplosion();
     } else {
         user.stats.lost+=item.p;
         user.inv=user.inv.filter(x=>x.id!==item.id);
-        // ИЗМЕНЕНИЕ: НЕУДАЧА → НЕ БЕДА
-        msg.innerText="НЕ БЕДА"; msg.className="loss-glow";
+        // ИЗМЕНЕНИЕ: НЕУДАЧА → НЕ БЕДА (заболевание прогрессирует и исчезает, потеря денег)
+        msg.innerText="ПРОГРЕСС"; msg.className="loss-glow";
     }
     selected.clear(); update();
 }
@@ -604,28 +615,28 @@ function refreshShop(){
 function updateBuyBtn(){ document.getElementById('buy-btn').disabled=!shopItems.some(i=>i.sel); }
 function askBuy(){
     let sel=shopItems.filter(i=>i.sel);
-    if(!sel.length){toast("ВЫБЕРИ ПРЕДМЕТЫ!");return;}
+    if(!sel.length){toast("ВЫБЕРИ ЗАРАЗЫ!");return;}
     let cost=sel.reduce((a,b)=>a+b.p,0);
-    openModal(`КУПИТЬ ЗА ${cost} ₴?`,()=>{
+    openModal(`ПОДХВАТИТЬ ЗА ${cost} ₴?`,()=>{
         if(user.bal<cost){toast("МАЛО ДЕНЕГ!");return;}
         sel.forEach(i=>{user.bal-=i.p;user.inv.push({...i,id:Date.now()+Math.random()});});
-        toast(`КУПЛЕНО НА ${cost} ₴`); refreshShop(); update();
+        toast(`ПРИОБРЕТЕНО ${sel.length} ШТ. ЗА ${cost} ₴`); refreshShop(); update();
     });
 }
 function askSellSelected(){
     let sel=user.inv.filter(i=>selected.has(i.id)); if(!sel.length)return;
     let cost=sel.reduce((a,b)=>a+b.p,0);
-    openModal(`ПРОДАТЬ ЗА ${cost} ₴?`,()=>{
+    openModal(`ВЫЛЕЧИТЬ ЗА ${cost} ₴?`,()=>{
         user.inv=user.inv.filter(i=>!selected.has(i.id));
-        user.bal+=cost; toast(`ПРОДАНО ЗА ${cost} ₴`);
+        user.bal+=cost; toast(`ВЫЛЕЧЕНО ЗА ${cost} ₴`);
         selected.clear(); update();
     });
 }
 function askSellAll(){
     if(!user.inv.length)return;
     let cost=user.inv.reduce((a,b)=>a+b.p,0);
-    openModal(`ПРОДАТЬ ВСЁ ЗА ${cost} ₴?`,()=>{
-        user.bal+=cost; user.inv=[]; toast(`ПРОДАНО ВСЁ ЗА ${cost} ₴`); update();
+    openModal(`ВЫЛЕЧИТЬ ВСЁ ЗА ${cost} ₴?`,()=>{
+        user.bal+=cost; user.inv=[]; toast(`ПОЛНОСТЬЮ ЗДОРОВ! ЗА ${cost} ₴`); update();
     });
 }
 const PAGE_ORDER={main:1,shop:0,profile:2};
@@ -645,7 +656,6 @@ function showPage(p){
 }
 // Инициализация
 window.onload = () => {
-    // автостарт анимации частиц
     updateParticles();
 }
 </script>
