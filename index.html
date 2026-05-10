@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V17 ULTRA</title>
+    <title>UPGRADOR V18 PRO</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -14,22 +14,23 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Уведомления (Toasts) */
+        /* Уведомления с крестиком */
         #toast-container {
             position: fixed; top: 10px; right: 10px; left: 10px;
-            display: flex; flex-direction: column; gap: 8px; z-index: 9999; pointer-events: none;
+            display: flex; flex-direction: column; gap: 8px; z-index: 9999;
         }
         .toast {
-            background: rgba(22, 22, 22, 0.9);
+            background: rgba(22, 22, 22, 0.95);
             border-left: 4px solid var(--accent);
-            padding: 12px 20px; border-radius: 8px;
+            padding: 12px 15px; border-radius: 8px;
             color: #fff; font-weight: 600; font-size: 0.9rem;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5), 0 0 10px var(--accent-glow);
-            animation: slideIn 0.3s ease forwards, fadeOut 0.3s ease 2.7s forwards;
-            backdrop-filter: blur(5px); pointer-events: auto;
+            display: flex; justify-content: space-between; align-items: center;
+            animation: slideIn 0.3s ease forwards;
+            backdrop-filter: blur(5px);
         }
+        .toast-close { cursor: pointer; padding: 0 5px; font-size: 1.2rem; opacity: 0.7; }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes fadeOut { to { transform: translateX(100px); opacity: 0; } }
 
         header { 
             height: 60px; background: #000; display: flex; align-items: center; 
@@ -46,7 +47,7 @@
         main { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .container { display: none; width: 100%; max-width: 400px; }
 
-        /* Круг */
+        /* Круг и КУРСОР */
         .wheel-outer { width: 100%; display: flex; justify-content: center; margin: 15px 0; }
         .wheel-container { 
             position: relative; width: 240px; height: 240px; 
@@ -54,10 +55,17 @@
         }
         #wheel-fill { position: absolute; bottom: 0; width: 100%; background: var(--accent); transition: height 0.4s ease-out; }
         #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
-        #cursor-line { position: absolute; top: 0; left: 50%; width: 6px; height: 35px; background: #fff; transform: translateX(-50%); box-shadow: 0 0 15px #fff; border-radius: 0 0 4px 4px; }
+        #cursor-line { 
+            position: absolute; top: 0; left: 50%; 
+            width: 3px; height: 35px; /* В 2 РАЗА МЕНЬШЕ */
+            background: #fff; transform: translateX(-50%); 
+            box-shadow: 0 0 10px #fff; border-radius: 0 0 2px 2px; 
+        }
         .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
+        
+        /* ШРИФТЫ */
+        #status-msg { height: 30px; font-size: 1.5rem; font-weight: 900; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Кнопки */
         .btn-row { display: flex; width: 100%; gap: 6px; margin-bottom: 8px; }
         .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 2px; border-radius: 10px; flex: 1; font-weight: bold; font-size: 0.85rem; }
         .opt-btn.active { background: var(--accent); border-color: #fff; }
@@ -73,8 +81,8 @@
         .modal-card { background: var(--panel); border: 1px solid var(--accent); border-radius: 15px; padding: 25px; width: 100%; max-width: 320px; text-align: center; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
-        .win-glow { color: var(--win); text-shadow: 0 0 10px var(--win); }
-        .loss-glow { color: var(--loss); text-shadow: 0 0 10px var(--loss); }
+        .win-glow { color: var(--win); text-shadow: 0 0 15px var(--win); }
+        .loss-glow { color: var(--loss); text-shadow: 0 0 15px var(--loss); }
     </style>
 </head>
 <body>
@@ -146,7 +154,7 @@
 
         <div id="p-profile" class="container">
             <h3 style="margin-bottom:10px">ПРОФИЛЬ</h3>
-            <div id="stat-box" style="background:var(--panel); padding:15px; border-radius:12px; border:1px solid #222; margin-bottom:15px; line-height:1.8;"></div>
+            <div id="stat-box" style="background:var(--panel); padding:15px; border-radius:12px; border:1px solid #222; margin-bottom:15px; line-height:1.6;"></div>
             <div class="btn-row">
                 <button class="opt-btn" onclick="askSellSelected()">ПРОДАТЬ ВЫБРАННОЕ</button>
                 <button class="opt-btn" onclick="askSellAll()">ПРОДАТЬ ВСЁ</button>
@@ -164,20 +172,19 @@
             const container = document.getElementById('toast-container');
             const el = document.createElement('div');
             el.className = 'toast';
-            el.innerText = text;
+            el.innerHTML = `<span>${text}</span><span class="toast-close" onclick="this.parentElement.remove()">×</span>`;
             container.appendChild(el);
-            setTimeout(() => el.remove(), 3000);
+            setTimeout(() => { if(el.parentElement) el.remove(); }, 4000);
         }
 
         function login() {
             const n = document.getElementById('user-in').value.trim();
             if(!n) return;
-            const saved = localStorage.getItem('upg_v17_'+n);
+            const saved = localStorage.getItem('upg_v18_'+n);
             if(saved) user = JSON.parse(saved);
             else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
             document.getElementById('auth-screen').style.display = 'none';
             update();
-            toast(`С возвращением, ${user.name}!`);
         }
 
         function update() {
@@ -186,16 +193,19 @@
             renderInv('inv-prof', false);
             renderStats();
             document.getElementById('go-btn').disabled = (selected.size === 0 || spinning);
-            localStorage.setItem('upg_v17_'+user.name, JSON.stringify(user));
+            localStorage.setItem('upg_v18_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
+            const total = user.stats.earned - user.stats.lost;
+            const totalColor = total >= 0 ? 'var(--win)' : 'var(--loss)';
             document.getElementById('stat-box').innerHTML = `
                 👤 Игрок: <b style="color:var(--accent)">${user.name}</b><br>
-                ⚙️ Апгрейдов: <b>${user.stats.ups}</b><br>
-                📈 Чистая прибыль: <span style="color:var(--win)">+${user.stats.earned} ₴</span><br>
-                📉 Потери: <span style="color:var(--loss)">-${user.stats.lost} ₴</span><br>
-                🏆 Лучший предмет: <b>${user.stats.best.n}</b>
+                ⚙️ Апгрейдов: <b>${user.stats.ups}</b><hr style="margin:8px 0; opacity:0.1">
+                📊 ИТОГО: <b style="color:${totalColor}">${total >= 0 ? '+' : ''}${total} ₴</b><br>
+                📈 Выиграл: <span style="color:var(--win)">+${user.stats.earned} ₴</span><br>
+                📉 Слил: <span style="color:var(--loss)">-${user.stats.lost} ₴</span><hr style="margin:8px 0; opacity:0.1">
+                🏆 Топ: <b>${user.stats.best.n}</b>
             `;
         }
 
@@ -228,7 +238,12 @@
 
         function startSpin() {
             if(spinning || selected.size !== 1) return;
-            spinning = true; update();
+            spinning = true;
+            // СБРОС ТЕКСТА
+            document.getElementById('status-msg').innerText = "";
+            document.getElementById('status-msg').className = "";
+            update();
+            
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = true);
             const item = user.inv.find(x => x.id === [...selected][0]);
             let start = null, dur = 3000, rot = 1440 + (Math.random()*360), sAng = currentRot;
@@ -251,25 +266,23 @@
             const winSize = (chance / 100) * 360;
             const win = (deg >= (180 - winSize/2 - 8) && deg <= (180 + winSize/2 + 8));
             
+            const msg = document.getElementById('status-msg');
             if(win) {
                 const profit = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += profit; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += profit;
                 if(item.p > user.stats.best.p) user.stats.best = {n: item.n, p: item.p};
-                document.getElementById('status-msg').innerText = "УСПЕХ!";
-                document.getElementById('status-msg').className = "win-glow";
-                toast(`Успешный апгрейд! +${profit} ₴`);
+                msg.innerText = "УСПЕХ"; msg.className = "win-glow";
+                toast(`Успех! +${profit} ₴`);
             } else {
                 user.stats.lost += item.p;
                 user.inv = user.inv.filter(x => x.id !== item.id);
-                document.getElementById('status-msg').innerText = "НЕУДАЧА";
-                document.getElementById('status-msg').className = "loss-glow";
-                toast(`Предмет уничтожен! -${item.p} ₴`);
+                msg.innerText = "НЕУДАЧА"; msg.className = "loss-glow";
+                toast(`Слив! -${item.p} ₴`);
             }
             selected.clear(); update();
         }
 
-        // МОДАЛКИ (ДА/НЕТ)
         function openModal(text, action) {
             document.getElementById('modal-text').innerText = text;
             document.getElementById('modal-overlay').style.display = 'flex';
@@ -281,7 +294,6 @@
             pendingAction = null;
         }
 
-        // МАГАЗИН И ПРОДАЖА
         let shopItems = [];
         function refreshShop() {
             const b = parseInt(document.getElementById('budget').value) || 20;
@@ -299,10 +311,10 @@
             let sel = shopItems.filter(i => i.sel);
             if(!sel.length) return;
             let cost = sel.reduce((a, b) => a + b.p, 0);
-            openModal(`Вы хотите купить ${sel.length} предметов за ${cost} ₴?`, () => {
-                if(user.bal < cost) return toast("Недостаточно денег");
+            openModal(`Купить ${sel.length} предметов за ${cost} ₴?`, () => {
+                if(user.bal < cost) return toast("Недостаточно денег!");
                 sel.forEach(i => { user.bal -= i.p; user.inv.push({...i, id: Date.now()+Math.random(), sel:false}); });
-                toast(`Куплено ${sel.length} предметов на ${cost} ₴`);
+                toast(`Куплено ${sel.length} шт. на ${cost} ₴`);
                 refreshShop(); update();
             });
         }
@@ -311,10 +323,10 @@
             let sel = user.inv.filter(i => selected.has(i.id));
             if(!sel.length) return;
             let cost = sel.reduce((a, b) => a + b.p, 0);
-            openModal(`Вы хотите продать ${sel.length} предметов за ${cost} ₴?`, () => {
+            openModal(`Продать ${sel.length} шт. за ${cost} ₴?`, () => {
                 user.inv = user.inv.filter(i => !selected.has(i.id));
                 user.bal += cost;
-                toast(`Продано предметов: ${sel.length} на ${cost} ₴`);
+                toast(`Продано на ${cost} ₴`);
                 selected.clear(); update();
             });
         }
@@ -322,10 +334,10 @@
         function askSellAll() {
             if(!user.inv.length) return;
             let cost = user.inv.reduce((a, b) => a + b.p, 0);
-            openModal(`Вы хотите продать ВСЕ предметы (${user.inv.length} шт.) за ${cost} ₴?`, () => {
+            openModal(`Продать ВСЁ (${user.inv.length} шт.) за ${cost} ₴?`, () => {
                 let count = user.inv.length;
                 user.bal += cost; user.inv = [];
-                toast(`Продано всё (${count} шт.) на ${cost} ₴`);
+                toast(`Продано ${count} шт. на ${cost} ₴`);
                 update();
             });
         }
