@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V14 FIXED</title>
+    <title>UPGRADOR V15 JUSTICE</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -27,29 +27,22 @@
         .balance-box { margin-left: auto; display: flex; align-items: center; gap: 6px; font-weight: bold; z-index: 10; }
 
         main { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .container { display: none; width: 100%; max-width: 400px; margin-top: 0; }
-
-        /* Центрирование круга без пустот */
-        .wheel-wrapper {
-            width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-        }
+        .container { display: none; width: 100%; max-width: 400px; }
 
         .wheel-container { 
             position: relative; width: 250px; height: 250px; margin: 10px 0; 
             border-radius: 50%; border: 6px solid #1a1a1a; background: #000; overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         #wheel-fill { 
             position: absolute; bottom: 0; width: 100%; background: var(--accent); 
-            box-shadow: 0 0 30px var(--accent-glow);
-            transition: height 0.4s ease-out;
+            transition: height 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
         }
         
         #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
         #cursor-line { 
-            position: absolute; top: 5px; left: 50%; width: 5px; height: 25px; 
-            background: #fff; border-radius: 10px; transform: translateX(-50%); 
-            box-shadow: 0 0 10px #fff; 
+            position: absolute; top: 0; left: 50%; width: 6px; height: 35px; 
+            background: #fff; border-radius: 0 0 4px 4px; transform: translateX(-50%); 
+            box-shadow: 0 0 15px #fff; 
         }
 
         .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
@@ -62,7 +55,7 @@
         .action-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.1rem; font-weight: 900; margin: 5px 0 15px 0; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; padding-bottom: 20px; }
-        .item-frame { border: 1px solid #222; border-radius: var(--radius); padding: 12px; background: var(--panel); text-align: center; font-size: 0.9rem; }
+        .item-frame { border: 1px solid #222; border-radius: var(--radius); padding: 12px; background: var(--panel); text-align: center; }
         .item-frame.selected { border-color: var(--accent); background: #1e0a2e; }
         .price { color: var(--win); font-weight: bold; margin-top: 4px; }
 
@@ -92,41 +85,37 @@
 
     <main>
         <div id="p-main" class="container" style="display: block;">
-            <div class="wheel-wrapper">
-                <div class="wheel-container">
-                    <div id="wheel-fill" style="height: 10%;"></div>
-                    <div id="cursor-wrapper"><div id="cursor-line"></div></div>
-                    <div class="center-stat">
-                        <h2 id="pct-view" style="font-size: 2.5rem; font-weight: 900;">10%</h2>
-                        <div id="status-msg"></div>
-                    </div>
+            <div class="wheel-container">
+                <div id="wheel-fill" style="height: 10%;"></div>
+                <div id="cursor-wrapper"><div id="cursor-line"></div></div>
+                <div class="center-stat">
+                    <h2 id="pct-view" style="font-size: 2.5rem; font-weight: 900;">10%</h2>
+                    <div id="status-msg"></div>
                 </div>
-                <div class="btn-row">
-                    <button class="opt-btn bc" id="m2" onclick="setM(2, 'm2')">X2</button>
-                    <button class="opt-btn bc" id="m4" onclick="setM(4, 'm4')">X4</button>
-                    <button class="opt-btn bc" id="m10" onclick="setM(10, 'm10')">X10</button>
-                </div>
-                <div class="btn-row">
-                    <button class="opt-btn bc" id="c35" onclick="setChance(35, 'c35')">35%</button>
-                    <button class="opt-btn bc" id="c55" onclick="setChance(55, 'c55')">55%</button>
-                    <button class="opt-btn bc" id="c75" onclick="setChance(75, 'c75')">75%</button>
-                </div>
-                <button class="action-btn" id="go-btn" onclick="startSpin()">ПРОКАЧАТЬ</button>
-                <div id="inv-main" class="grid"></div>
             </div>
+            <div class="btn-row">
+                <button class="opt-btn bc" id="m2" onclick="setM(2, 'm2')">X2</button>
+                <button class="opt-btn bc" id="m4" onclick="setM(4, 'm4')">X4</button>
+                <button class="opt-btn bc" id="m10" onclick="setM(10, 'm10')">X10</button>
+            </div>
+            <div class="btn-row">
+                <button class="opt-btn bc" id="c35" onclick="setChance(35, 'c35')">35%</button>
+                <button class="opt-btn bc" id="c55" onclick="setChance(55, 'c55')">55%</button>
+                <button class="opt-btn bc" id="c75" onclick="setChance(75, 'c75')">75%</button>
+            </div>
+            <button class="action-btn" id="go-btn" onclick="startSpin()">ПРОКАЧАТЬ</button>
+            <div id="inv-main" class="grid"></div>
         </div>
 
         <div id="p-shop" class="container">
-            <div style="display:flex; gap:8px; margin-bottom:10px;">
-                <input type="number" id="budget" placeholder="Цена от..." style="flex:1; padding:10px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
-                <button class="opt-btn" style="flex:0.4" onclick="refreshShop()">ПОИСК</button>
-            </div>
+            <input type="number" id="budget" placeholder="Цена от..." style="width:100%; padding:10px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:10px; outline:none;">
+            <button class="opt-btn" style="width:100%; margin-bottom:10px" onclick="refreshShop()">ПОИСК</button>
             <div id="shop-grid" class="grid"></div>
             <button class="action-btn" onclick="buySelected()">КУПИТЬ</button>
         </div>
 
         <div id="p-profile" class="container">
-            <div id="stat-box" style="background:var(--panel); padding:15px; border-radius:12px; border:1px solid #222; margin-bottom:10px; font-size:0.9rem; line-height:1.8;"></div>
+            <div id="stat-box" style="background:var(--panel); padding:15px; border-radius:12px; border:1px solid #222; margin-bottom:10px; font-size:0.9rem;"></div>
             <div class="btn-row">
                 <button class="opt-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ</button>
                 <button class="opt-btn" onclick="sellAll()">ПРОДАТЬ ВСЁ</button>
@@ -136,14 +125,14 @@
     </main>
 
     <script>
-        const ITEMS = ["Зуб", "Мозг", "Заначка", "Сифилис", "Сердце бывшего", "Носок", "Почка"];
+        const ITEMS = ["Зуб", "Мозг", "Заначка", "Сифилис", "Сердце бывшего", "Носок"];
         let user = { name: "", bal: 1000, inv: [], stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} } };
         let chance = 10, selected = new Set(), spinning = false, currentRot = 0;
 
         function login() {
             const n = document.getElementById('user-in').value;
             if(!n) return;
-            const s = localStorage.getItem('upg_v14_'+n);
+            const s = localStorage.getItem('upg_v15_'+n);
             if(s) user = JSON.parse(s);
             else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
             document.getElementById('auth-screen').style.display='none';
@@ -155,16 +144,11 @@
             renderInv('inv-main', true);
             renderInv('inv-prof', false);
             renderStats();
-            localStorage.setItem('upg_v14_'+user.name, JSON.stringify(user));
+            localStorage.setItem('upg_v15_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
-            document.getElementById('stat-box').innerHTML = `
-                Игрок: <b>${user.name}</b><br>
-                Профит: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
-                Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
-                Лучший дроп: <b>${user.stats.best.n} (${user.stats.best.p} ₴)</b>
-            `;
+            document.getElementById('stat-box').innerHTML = `Профит: <span style="color:var(--win)">${user.stats.earned} ₴</span> | Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>🏆 Топ: ${user.stats.best.n} (${user.stats.best.p} ₴)`;
         }
 
         function renderInv(id, single) {
@@ -177,13 +161,6 @@
                 d.onclick = () => { if(single) selected.clear(); if(selected.has(i.id)) selected.delete(i.id); else selected.add(i.id); update(); };
                 g.appendChild(d);
             });
-        }
-
-        function showPage(p) {
-            if(spinning) return;
-            ['main','shop','profile'].forEach(x => document.getElementById('p-'+x).style.display='none');
-            document.getElementById('p-'+p).style.display='block';
-            selected.clear(); update();
         }
 
         function setChance(c, id) { 
@@ -216,12 +193,15 @@
 
         function finish(deg, item) {
             spinning = false; document.getElementById('go-btn').disabled = false;
+            // УЛЬТРА ПРОВЕРКА: Сектор всегда внизу (180 градусов)
             const winSize = (chance / 100) * 360;
-            const sZone = 180 - (winSize / 2) - 4; // Фора 4 градуса
-            const eZone = 180 + (winSize / 2) + 4;
-            const win = (deg >= sZone && deg <= eZone);
+            // Увеличиваем зону захвата на 8 градусов (+4 с каждой стороны)
+            const sZone = 180 - (winSize / 2) - 8;
+            const eZone = 180 + (winSize / 2) + 8;
             
+            const win = (deg >= sZone && deg <= eZone);
             const msg = document.getElementById('status-msg');
+
             if(win) {
                 const p = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += p; item.n = "★ " + item.n.replace("★ ", "");
@@ -234,6 +214,11 @@
                 msg.innerText = "НЕ БЕДА"; msg.className = "loss-glow";
             }
             update();
+        }
+
+        function showPage(p) {
+            ['main','shop','profile'].forEach(x => document.getElementById('p-'+x).style.display='none');
+            document.getElementById('p-'+p).style.display='block';
         }
 
         let sItems = [];
