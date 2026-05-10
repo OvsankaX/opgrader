@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V15 JUSTICE</title>
+    <title>UPGRADOR V16 PRO</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -29,33 +29,37 @@
         main { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .container { display: none; width: 100%; max-width: 400px; }
 
+        /* Идеальное центрирование круга */
+        .wheel-outer { width: 100%; display: flex; justify-content: center; margin: 15px 0; }
         .wheel-container { 
-            position: relative; width: 250px; height: 250px; margin: 10px 0; 
+            position: relative; width: 250px; height: 250px; 
             border-radius: 50%; border: 6px solid #1a1a1a; background: #000; overflow: hidden;
         }
         #wheel-fill { 
             position: absolute; bottom: 0; width: 100%; background: var(--accent); 
-            transition: height 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
+            transition: height 0.4s ease-out;
         }
         
         #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
         #cursor-line { 
             position: absolute; top: 0; left: 50%; width: 6px; height: 35px; 
-            background: #fff; border-radius: 0 0 4px 4px; transform: translateX(-50%); 
-            box-shadow: 0 0 15px #fff; 
+            background: #fff; transform: translateX(-50%); 
+            box-shadow: 0 0 15px #fff; border-radius: 0 0 4px 4px;
         }
 
         .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
         #status-msg { height: 24px; font-size: 1.2rem; font-weight: 900; margin-top: 2px; }
 
-        .btn-row { display: flex; width: 100%; gap: 6px; margin-bottom: 6px; }
-        .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 10px 2px; border-radius: 10px; flex: 1; font-weight: bold; font-size: 0.85rem; }
+        .btn-row { display: flex; width: 100%; gap: 6px; margin-bottom: 8px; }
+        .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 2px; border-radius: 10px; flex: 1; font-weight: bold; font-size: 0.85rem; transition: 0.2s; }
         .opt-btn.active { background: var(--accent); border-color: #fff; }
+        .opt-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .action-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.1rem; font-weight: 900; margin: 5px 0 15px 0; }
+        .action-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.1rem; font-weight: 900; margin: 5px 0 15px 0; transition: 0.3s; }
+        .action-btn:disabled { background: #333; opacity: 0.5; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; padding-bottom: 20px; }
-        .item-frame { border: 1px solid #222; border-radius: var(--radius); padding: 12px; background: var(--panel); text-align: center; }
+        .item-frame { border: 1px solid #222; border-radius: var(--radius); padding: 12px; background: var(--panel); text-align: center; cursor: pointer; }
         .item-frame.selected { border-color: var(--accent); background: #1e0a2e; }
         .price { color: var(--win); font-weight: bold; margin-top: 4px; }
 
@@ -67,10 +71,10 @@
 <body>
 
     <div id="auth-screen">
-        <div style="background:var(--panel); padding:25px; border-radius:15px; border:1px solid var(--accent); width:260px; text-align:center;">
-            <h2 style="color:var(--accent); margin-bottom:15px;">LOGIN</h2>
-            <input type="text" id="user-in" placeholder="Ник..." style="width:100%; padding:10px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; text-align:center; outline:none;">
-            <button class="action-btn" style="margin:0" onclick="login()">ВОЙТИ</button>
+        <div style="background:var(--panel); padding:25px; border-radius:15px; border:1px solid var(--accent); width:280px; text-align:center;">
+            <h2 style="color:var(--accent); margin-bottom:15px;">UPGRADOR LOGIN</h2>
+            <input type="text" id="user-in" placeholder="Твой ник..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; text-align:center; outline:none;">
+            <button class="action-btn" style="margin:0" onclick="login()">НАЧАТЬ</button>
         </div>
     </div>
 
@@ -85,57 +89,63 @@
 
     <main>
         <div id="p-main" class="container" style="display: block;">
-            <div class="wheel-container">
-                <div id="wheel-fill" style="height: 10%;"></div>
-                <div id="cursor-wrapper"><div id="cursor-line"></div></div>
-                <div class="center-stat">
-                    <h2 id="pct-view" style="font-size: 2.5rem; font-weight: 900;">10%</h2>
-                    <div id="status-msg"></div>
+            <div class="wheel-outer">
+                <div class="wheel-container">
+                    <div id="wheel-fill" style="height: 10%;"></div>
+                    <div id="cursor-wrapper"><div id="cursor-line"></div></div>
+                    <div class="center-stat">
+                        <h2 id="pct-view" style="font-size: 2.5rem; font-weight: 900;">10%</h2>
+                        <div id="status-msg"></div>
+                    </div>
                 </div>
             </div>
             <div class="btn-row">
-                <button class="opt-btn bc" id="m2" onclick="setM(2, 'm2')">X2</button>
-                <button class="opt-btn bc" id="m4" onclick="setM(4, 'm4')">X4</button>
-                <button class="opt-btn bc" id="m10" onclick="setM(10, 'm10')">X10</button>
+                <button class="opt-btn bc x-ctrl" id="m2" onclick="setM(2, 'm2')">X2</button>
+                <button class="opt-btn bc x-ctrl" id="m4" onclick="setM(4, 'm4')">X4</button>
+                <button class="opt-btn bc x-ctrl" id="m10" onclick="setM(10, 'm10')">X10</button>
             </div>
             <div class="btn-row">
-                <button class="opt-btn bc" id="c35" onclick="setChance(35, 'c35')">35%</button>
-                <button class="opt-btn bc" id="c55" onclick="setChance(55, 'c55')">55%</button>
-                <button class="opt-btn bc" id="c75" onclick="setChance(75, 'c75')">75%</button>
+                <button class="opt-btn bc x-ctrl" id="c35" onclick="setChance(35, 'c35')">35%</button>
+                <button class="opt-btn bc x-ctrl" id="c55" onclick="setChance(55, 'c55')">55%</button>
+                <button class="opt-btn bc x-ctrl" id="c75" onclick="setChance(75, 'c75')">75%</button>
             </div>
-            <button class="action-btn" id="go-btn" onclick="startSpin()">ПРОКАЧАТЬ</button>
+            <button class="action-btn" id="go-btn" onclick="startSpin()" disabled>ПРОКАЧАТЬ</button>
             <div id="inv-main" class="grid"></div>
         </div>
 
         <div id="p-shop" class="container">
-            <input type="number" id="budget" placeholder="Цена от..." style="width:100%; padding:10px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:10px; outline:none;">
-            <button class="opt-btn" style="width:100%; margin-bottom:10px" onclick="refreshShop()">ПОИСК</button>
+            <h3 style="margin-bottom:10px">МАГАЗИН</h3>
+            <div style="display:flex; gap:8px; margin-bottom:15px;">
+                <input type="number" id="budget" placeholder="Мин. цена..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
+                <button class="opt-btn" style="flex:0.4" onclick="refreshShop()">ПОИСК</button>
+            </div>
             <div id="shop-grid" class="grid"></div>
-            <button class="action-btn" onclick="buySelected()">КУПИТЬ</button>
+            <button class="action-btn" onclick="buySelected()">КУПИТЬ ВЫБРАННОЕ</button>
         </div>
 
         <div id="p-profile" class="container">
-            <div id="stat-box" style="background:var(--panel); padding:15px; border-radius:12px; border:1px solid #222; margin-bottom:10px; font-size:0.9rem;"></div>
+            <h3 style="margin-bottom:10px">МОИ ДАННЫЕ</h3>
+            <div id="stat-box" style="background:var(--panel); padding:15px; border-radius:12px; border:1px solid #222; margin-bottom:15px; line-height:2;"></div>
             <div class="btn-row">
                 <button class="opt-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ</button>
                 <button class="opt-btn" onclick="sellAll()">ПРОДАТЬ ВСЁ</button>
             </div>
-            <div id="inv-prof" class="grid" style="margin-top:10px"></div>
+            <div id="inv-prof" class="grid" style="margin-top:15px"></div>
         </div>
     </main>
 
     <script>
-        const ITEMS = ["Зуб", "Мозг", "Заначка", "Сифилис", "Сердце бывшего", "Носок"];
+        const ITEMS_POOL = ["Зуб", "Мозг", "Заначка", "Сифилис", "Сердце", "Носок", "Почка", "Кот"];
         let user = { name: "", bal: 1000, inv: [], stats: { ups: 0, lost: 0, earned: 0, best: {n: "-", p: 0} } };
         let chance = 10, selected = new Set(), spinning = false, currentRot = 0;
 
         function login() {
-            const n = document.getElementById('user-in').value;
+            const n = document.getElementById('user-in').value.trim();
             if(!n) return;
-            const s = localStorage.getItem('upg_v15_'+n);
-            if(s) user = JSON.parse(s);
+            const saved = localStorage.getItem('upg_v16_'+n);
+            if(saved) user = JSON.parse(saved);
             else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
-            document.getElementById('auth-screen').style.display='none';
+            document.getElementById('auth-screen').style.display = 'none';
             update();
         }
 
@@ -144,11 +154,22 @@
             renderInv('inv-main', true);
             renderInv('inv-prof', false);
             renderStats();
-            localStorage.setItem('upg_v15_'+user.name, JSON.stringify(user));
+            
+            // Блокировка главной кнопки
+            const btn = document.getElementById('go-btn');
+            btn.disabled = (selected.size === 0 || spinning);
+            
+            localStorage.setItem('upg_v16_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
-            document.getElementById('stat-box').innerHTML = `Профит: <span style="color:var(--win)">${user.stats.earned} ₴</span> | Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>🏆 Топ: ${user.stats.best.n} (${user.stats.best.p} ₴)`;
+            document.getElementById('stat-box').innerHTML = `
+                👤 Ник: <b style="color:var(--accent)">${user.name}</b><br>
+                ⚙️ Апгрейдов: <b>${user.stats.ups}</b><br>
+                📈 Профит: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
+                📉 Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
+                🏆 Лучший предмет: <b>${user.stats.best.n} (${user.stats.best.p} ₴)</b>
+            `;
         }
 
         function renderInv(id, single) {
@@ -158,12 +179,23 @@
                 const d = document.createElement('div');
                 d.className = `item-frame ${selected.has(i.id) ? 'selected' : ''}`;
                 d.innerHTML = `<b>${i.n}</b><div class="price">${i.p} ₴</div>`;
-                d.onclick = () => { if(single) selected.clear(); if(selected.has(i.id)) selected.delete(i.id); else selected.add(i.id); update(); };
+                d.onclick = () => {
+                    if(spinning) return;
+                    if(single) { 
+                        let was = selected.has(i.id);
+                        selected.clear(); 
+                        if(!was) selected.add(i.id);
+                    } else {
+                        if(selected.has(i.id)) selected.delete(i.id); else selected.add(i.id);
+                    }
+                    update();
+                };
                 g.appendChild(d);
             });
         }
 
         function setChance(c, id) { 
+            if(spinning) return;
             chance = c; 
             document.getElementById('wheel-fill').style.height = c + '%'; 
             document.getElementById('pct-view').innerText = c + '%'; 
@@ -174,8 +206,14 @@
 
         function startSpin() {
             if(spinning || selected.size !== 1) return;
-            spinning = true; document.getElementById('go-btn').disabled = true;
-            document.getElementById('status-msg').innerText = "";
+            spinning = true;
+            update();
+            
+            // Блокируем кнопки управления
+            document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = true);
+            document.getElementById('status-msg').innerText = "КРУТИМ...";
+            document.getElementById('status-msg').className = "";
+
             const item = user.inv.find(x => x.id === [...selected][0]);
             let start = null, dur = 3000, rot = 1440 + (Math.random()*360), sAng = currentRot;
 
@@ -192,41 +230,44 @@
         }
 
         function finish(deg, item) {
-            spinning = false; document.getElementById('go-btn').disabled = false;
-            // УЛЬТРА ПРОВЕРКА: Сектор всегда внизу (180 градусов)
-            const winSize = (chance / 100) * 360;
-            // Увеличиваем зону захвата на 8 градусов (+4 с каждой стороны)
-            const sZone = 180 - (winSize / 2) - 8;
-            const eZone = 180 + (winSize / 2) + 8;
+            spinning = false;
+            user.stats.ups++; // Считаем апгрейд
+            document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = false);
             
+            const winSize = (chance / 100) * 360;
+            const sZone = 180 - (winSize / 2) - 8; 
+            const eZone = 180 + (winSize / 2) + 8;
             const win = (deg >= sZone && deg <= eZone);
+            
             const msg = document.getElementById('status-msg');
-
             if(win) {
                 const p = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += p; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += p;
                 if(item.p > user.stats.best.p) user.stats.best = {n: item.n, p: item.p};
-                msg.innerText = "ПОБЕДА"; msg.className = "win-glow";
+                msg.innerText = "УСПЕХ!"; msg.className = "win-glow";
             } else {
                 user.stats.lost += item.p;
                 user.inv = user.inv.filter(x => x.id !== item.id);
-                msg.innerText = "НЕ БЕДА"; msg.className = "loss-glow";
+                msg.innerText = "НЕУДАЧА"; msg.className = "loss-glow";
             }
+            selected.clear();
             update();
         }
 
         function showPage(p) {
+            if(spinning) return;
             ['main','shop','profile'].forEach(x => document.getElementById('p-'+x).style.display='none');
             document.getElementById('p-'+p).style.display='block';
+            selected.clear(); update();
         }
 
-        let sItems = [];
+        let shopItems = [];
         function refreshShop() {
             const b = parseInt(document.getElementById('budget').value) || 20;
-            sItems = Array.from({length:6}, (_,i) => ({id:'s'+i, n: ITEMS[Math.floor(Math.random()*ITEMS.length)], p: Math.floor(b + Math.random()*b*0.5)}));
+            shopItems = Array.from({length:6}, (_,i) => ({id:'s'+i, n: ITEMS_POOL[Math.floor(Math.random()*ITEMS_POOL.length)], p: Math.floor(b + Math.random()*b*0.5)}));
             const g = document.getElementById('shop-grid'); g.innerHTML = '';
-            sItems.forEach(i => {
+            shopItems.forEach(i => {
                 const d = document.createElement('div'); d.className = 'item-frame';
                 d.innerHTML = `<b>${i.n}</b><div class="price">${i.p} ₴</div>`;
                 d.onclick = () => { i.sel = !i.sel; d.classList.toggle('selected'); };
@@ -235,19 +276,38 @@
         }
 
         function buySelected() {
-            sItems.forEach(i => { if(i.sel && user.bal >= i.p) { user.bal -= i.p; user.inv.push({...i, id: Date.now()+Math.random()}); }});
-            showPage('main'); update();
+            let count = 0, cost = 0;
+            shopItems.forEach(i => { 
+                if(i.sel && user.bal >= i.p) { 
+                    user.bal -= i.p; 
+                    cost += i.p; count++;
+                    user.inv.push({...i, id: Date.now()+Math.random(), sel:false}); 
+                    i.sel = false;
+                }
+            });
+            if(count > 0) alert(`✅ Куплено предметов: ${count} на сумму ${cost} ₴`);
+            refreshShop(); update();
         }
 
         function sellSelected() {
-            user.inv = user.inv.filter(i => { if(selected.has(i.id)) { user.bal += i.p; return false; } return true; });
+            let count = 0, cost = 0;
+            user.inv = user.inv.filter(i => { 
+                if(selected.has(i.id)) { user.bal += i.p; cost += i.p; count++; return false; } 
+                return true; 
+            });
+            if(count > 0) alert(`💰 Продано: ${count} шт. Получено: ${cost} ₴`);
             selected.clear(); update();
         }
 
-        function sellAll() { user.inv.forEach(i => user.bal += i.p); user.inv = []; update(); }
+        function sellAll() {
+            if(user.inv.length === 0) return;
+            let cost = user.inv.reduce((a, b) => a + b.p, 0);
+            let count = user.inv.length;
+            user.bal += cost; user.inv = [];
+            alert(`💰 Продано ВСЁ (${count} шт.) на сумму ${cost} ₴`);
+            update();
+        }
     </script>
 </body>
 </html>
-
-
 
