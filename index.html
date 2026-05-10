@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPGRADOR MOBILE</title>
+    <title>UPGRADOR MOBILE V4</title>
     <style>
         :root {
             --bg: #0d0d0d;
@@ -48,11 +48,17 @@
             position: absolute; bottom: 0; width: 100%; background: var(--accent); 
             box-shadow: 0 0 40px var(--accent-glow); transition: height 0.3s ease; 
         }
-        #cursor-line {
-            position: absolute; width: 6px; height: 30px; background: #fff;
-            border-radius: 10px; top: 10px; left: calc(50% - 3px);
-            transform-origin: 50% 130px; z-index: 10; box-shadow: 0 0 15px #fff;
+
+        /* ИСПРАВЛЕННАЯ СТРЕЛКА */
+        #cursor-wrapper {
+            position: absolute; inset: 0; transition: none;
         }
+        #cursor-line {
+            position: absolute; top: 10px; left: 50%; width: 4px; height: 25px;
+            background: #fff; border-radius: 4px; transform: translateX(-50%);
+            box-shadow: 0 0 15px #fff; z-index: 20;
+        }
+
         .center-stat {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             text-align: center; z-index: 5; pointer-events: none;
@@ -70,7 +76,6 @@
             border-radius: var(--radius); color: #fff; font-size: 1.2rem; font-weight: bold;
             box-shadow: 0 5px 15px var(--accent-glow); margin-top: 10px;
         }
-        .action-btn:disabled { opacity: 0.5; box-shadow: none; }
 
         .item-frame {
             border: 2px solid #222; border-radius: var(--radius); padding: 15px;
@@ -79,8 +84,6 @@
         .item-frame.selected { border-color: var(--accent); background: #201030; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .price { color: var(--win); font-weight: bold; margin-top: 5px; }
-
-        /* Stats in profile */
         .stats-card { background: #111; border-radius: var(--radius); padding: 20px; margin-bottom: 15px; border: 1px solid #222; }
     </style>
 </head>
@@ -105,13 +108,15 @@
     </header>
 
     <main>
-        <!-- Главная -->
         <div id="p-main" class="container" style="display: block;">
             <div class="upgrade-section">
                 <div class="wheel-container">
                     <canvas id="p-canvas"></canvas>
                     <div id="wheel-fill" style="height: 10%;"></div>
-                    <div id="cursor-line"></div>
+                    <!-- ОБЕРТКА ДЛЯ ВРАЩЕНИЯ -->
+                    <div id="cursor-wrapper">
+                        <div id="cursor-line"></div>
+                    </div>
                     <div class="center-stat">
                         <h2 id="pct-view" style="font-size: 2.5rem;">10%</h2>
                         <div id="status-msg"></div>
@@ -130,33 +135,21 @@
                 <button class="action-btn" id="go-btn" onclick="startSpin()">ПРОКАЧАТЬ</button>
 
                 <div style="width: 100%; margin-top: 30px;">
-                    <h3 style="margin-bottom: 10px;">Твой инвентарь:</h3>
+                    <h3 style="margin-bottom: 10px;">Инвентарь:</h3>
                     <div id="inv-main" class="grid"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Магазин -->
         <div id="p-shop" class="container">
-            <h2 style="margin-bottom: 15px;">МАГАЗИН ХЛАМА</h2>
-            <div style="display: flex; gap: 10px;">
-                <input type="number" id="budget" placeholder="Бюджет ₴" style="margin:0;">
-                <button class="opt-btn" onclick="refreshShop()">ПОИСК</button>
-            </div>
+            <h2>МАГАЗИН</h2>
             <div id="shop-grid" class="grid"></div>
-            <button class="action-btn" onclick="buyAllSelected()">КУПИТЬ ВЫБРАННОЕ</button>
-            <button class="opt-btn" style="width:100%; margin-top:10px;" onclick="showPage('main')">НАЗАД</button>
+            <button class="action-btn" onclick="showPage('main')">НАЗАД</button>
         </div>
 
-        <!-- Профиль -->
         <div id="p-profile" class="container">
             <h2>ПРОФИЛЬ</h2>
             <div id="stat-box" class="stats-card"></div>
-            <div class="btn-grid">
-                <button class="opt-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ</button>
-                <button class="opt-btn" onclick="sellAll()">ПРОДАТЬ ВСЕ</button>
-            </div>
-            <div id="inv-prof" class="grid"></div>
             <button class="action-btn" onclick="showPage('main')">НАЗАД</button>
         </div>
     </main>
@@ -172,29 +165,28 @@
         let chance = 10;
         let selected = new Set();
         let spinning = false;
+        let currentRotation = 0; // Сохраняем угол здесь
 
         function login() {
             const n = document.getElementById('user-in').value;
             if(!n) return;
-            const s = localStorage.getItem('upg_v3_'+n);
+            const s = localStorage.getItem('upg_v4_'+n);
             if(s) user = JSON.parse(s);
             else {
                 user.name = n;
-                user.inv = [{id:1, n:"Твои яйца", p:100}, {id:2, n:"Аппендикс", p:50}];
+                user.inv = [{id:1, n:"Твои яйца", p:100}, {id:2, n:"Девственность", p:300}];
             }
             document.getElementById('auth-screen').style.display='none';
             update();
         }
 
-        function save() { localStorage.setItem('upg_v3_'+user.name, JSON.stringify(user)); }
-
         function update() {
             document.getElementById('bal').innerText = Math.floor(user.bal);
             renderInv('inv-main', true);
-            renderInv('inv-prof', false);
-            renderStats();
             save();
         }
+
+        function save() { localStorage.setItem('upg_v4_'+user.name, JSON.stringify(user)); }
 
         function renderInv(id, single) {
             const g = document.getElementById(id); g.innerHTML = '';
@@ -204,30 +196,16 @@
                 d.innerHTML = `<div>${i.n}</div><div class="price">${i.p} ₴</div>`;
                 d.onclick = () => {
                     if(single) selected.clear(); 
-                    if(selected.has(i.id)) selected.delete(i.id);
-                    else selected.add(i.id);
+                    if(selected.has(i.id)) selected.delete(i.id); else selected.add(i.id);
                     update();
                 };
                 g.appendChild(d);
             });
         }
 
-        function renderStats() {
-            document.getElementById('stat-box').innerHTML = `
-                Игрок: <b>${user.name}</b><br>
-                Апгрейдов: ${user.stats.ups}<br>
-                Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
-                Заработано: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
-                Топ дроп: ${user.stats.best.n} (${user.stats.best.p} ₴)
-            `;
-        }
-
         function showPage(p) {
             ['main','shop','profile'].forEach(x => document.getElementById('p-'+x).style.display='none');
             document.getElementById('p-'+p).style.display='block';
-            selected.clear();
-            if(p === 'shop') refreshShop();
-            update();
         }
 
         function setChance(c) {
@@ -248,50 +226,54 @@
             const idx = user.inv.findIndex(x => x.id === itId);
             const item = user.inv[idx];
 
-            let start = Date.now();
-            const dur = 6000;
-            const targetRot = 1800 + Math.random()*360; // 5 кругов + рандом
+            let startTime = null;
+            const duration = 8000; // Увеличили до 8 секунд для долгой остановки
+            const rotations = 2160 + (Math.random() * 360); // Минимум 6 полных кругов
+            const startAngle = currentRotation;
 
-            function animate() {
-                let t = (Date.now() - start) / dur;
-                if(t > 1) t = 1;
+            function animate(currentTime) {
+                if (!startTime) startTime = currentTime;
+                let elapsed = currentTime - startTime;
+                let t = elapsed / duration;
 
-                // Сложная кривая: медленно -> быстро -> медленно
-                let ease = t < 0.2 ? 2.5 * t * t : 1 - Math.pow(1 - t, 3); 
-                // Упростим для JS плавности
-                let currentRot = ease * targetRot;
+                if (t > 1) t = 1;
 
-                document.getElementById('cursor-line').style.transform = `rotate(${currentRot}deg)`;
-
-                if(t < 1) requestAnimationFrame(animate);
-                else finish(currentRot % 360, item, idx);
+                // Функция плавности: быстрый разгон и очень длинное замедление
+                // cubic-bezier(.08,.82,.17,1)
+                let ease = 1 - Math.pow(1 - t, 4); 
+                
+                let stepRotation = startAngle + (ease * rotations);
+                document.getElementById('cursor-wrapper').style.transform = `rotate(${stepRotation}deg)`;
+                
+                if (t < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentRotation = stepRotation % 360;
+                    finish(currentRotation, item, idx);
+                }
             }
-            animate();
+            requestAnimationFrame(animate);
         }
 
         function finish(deg, item, idx) {
             spinning = false;
             document.getElementById('go-btn').disabled = false;
 
-            // Зона выигрыша (внизу круга, т.к. фиолетовое растет снизу)
-            const zoneWidth = (chance / 100) * 180;
-            const isWin = (deg >= 180 - zoneWidth && deg <= 180 + zoneWidth);
+            // Центр фиолетовой зоны внизу (180 градусов)
+            const zoneHalf = (chance / 100) * 180;
+            const isWin = (deg >= 180 - zoneHalf && deg <= 180 + zoneHalf);
             const msg = document.getElementById('status-msg');
 
             if(isWin) {
                 const profit = Math.floor(item.p * (100/chance)) - item.p;
-                const newP = item.p + profit;
-                user.inv[idx] = {id: Date.now(), n: "★ " + item.n, p: newP};
-                user.stats.earned += profit;
-                if(newP > user.stats.best.p) user.stats.best = {n: user.inv[idx].n, p: newP};
+                item.p += profit;
+                item.n = "★ " + item.n.replace("★ ", "");
                 msg.innerText = "ПОБЕДА"; msg.style.color = "var(--win)";
                 boom();
             } else {
-                user.stats.lost += item.p;
                 user.inv.splice(idx, 1);
                 msg.innerText = "НЕ БЕДА"; msg.style.color = "var(--loss)";
             }
-            user.stats.ups++;
             selected.clear();
             update();
         }
@@ -301,17 +283,17 @@
             const ctx = canvas.getContext('2d');
             canvas.width = 280; canvas.height = 280;
             let particles = [];
-            for(let i=0; i<50; i++) {
+            for(let i=0; i<60; i++) {
                 particles.push({
                     x: 140, y: 140,
-                    vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4,
+                    vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3,
                     r: Math.random()*3+2, l: 1
                 });
             }
             function draw() {
                 ctx.clearRect(0,0,280,280);
                 particles.forEach((p, i) => {
-                    p.x += p.vx; p.y += p.vy; p.l -= 0.005; // Медленное исчезновение
+                    p.x += p.vx; p.y += p.vy; p.l -= 0.003; // Очень медленное угасание
                     ctx.fillStyle = `rgba(160, 32, 240, ${p.l})`;
                     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
                     if(p.l <= 0) particles.splice(i, 1);
@@ -320,56 +302,8 @@
             }
             draw();
         }
-
-        // Shop logic
-        let shopPool = [];
-        function refreshShop() {
-            const b = parseInt(document.getElementById('budget').value) || 200;
-            shopPool = [];
-            for(let i=0; i<6; i++) {
-                shopPool.push({id: 's'+i, n: ITEMS[Math.floor(Math.random()*ITEMS.length)], p: Math.floor(b * (0.5 + Math.random()))});
-            }
-            const g = document.getElementById('shop-grid'); g.innerHTML = '';
-            shopPool.forEach(i => {
-                const d = document.createElement('div');
-                d.className = `item-frame ${selected.has(i.id) ? 'selected' : ''}`;
-                d.innerHTML = `<div>${i.n}</div><div class="price">${i.p} ₴</div>`;
-                d.onclick = () => {
-                    if(selected.has(i.id)) selected.delete(i.id); else selected.add(i.id);
-                    refreshShopUI();
-                };
-                g.appendChild(d);
-            });
-        }
-        function refreshShopUI() {
-            const cards = document.querySelectorAll('#shop-grid .item-frame');
-            shopPool.forEach((item, i) => {
-                cards[i].className = `item-frame ${selected.has(item.id) ? 'selected' : ''}`;
-            });
-        }
-        function buyAllSelected() {
-            let cost = 0; let count = 0;
-            shopPool.forEach(i => { if(selected.has(i.id)) { cost += i.p; count++; } });
-            if(cost > user.bal) return alert("Грошей нема!");
-            if(count === 0) return;
-            user.bal -= cost;
-            shopPool.forEach(i => { if(selected.has(i.id)) user.inv.push({id: Date.now()+Math.random(), n: i.n, p: i.p}); });
-            selected.clear();
-            showPage('main');
-        }
-
-        function sellSelected() {
-            user.inv = user.inv.filter(i => {
-                if(selected.has(i.id)) { user.bal += i.p; return false; }
-                return true;
-            });
-            selected.clear(); update();
-        }
-        function sellAll() {
-            user.inv.forEach(i => user.bal += i.p);
-            user.inv = []; selected.clear(); update();
-        }
     </script>
 </body>
 </html>
+
 
