@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V25.4 - FINAL SMOOTH</title>
+    <title>UPGRADOR V25</title>
     <style>
         :root {
             --bg: #0a0a0a; --panel: #161616; --accent: #a020f0;
@@ -53,7 +53,7 @@
             transition: height 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
         }
 
-        #cursor-wrapper { position: absolute; inset: 0; z-index: 20; will-change: transform; }
+        #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
         #cursor-line { 
             position: absolute; top: 0; left: 50%; width: 3px; height: 18px; 
             background: #fff; transform: translateX(-50%); 
@@ -269,70 +269,46 @@
         }
         function setM(m, id) { setChance(Math.floor(100/m), id); }
 
-        // --- ФИНАЛЬНАЯ ГЛАДКАЯ АНИМАЦИЯ ---
         function startSpin() {
             if(spinning || selected.size !== 1) return;
-            
             spinning = true;
-            document.getElementById('go-btn').disabled = true;
-            document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = true);
-            
+            document.getElementById('go-btn').disabled = true; // Сразу блочим кнопку
             document.getElementById('status-msg').innerText = "";
             document.getElementById('status-msg').className = "";
+            document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = true);
             const item = user.inv.find(x => x.id === [...selected][0]);
-            
-            setTimeout(() => {
-                let start = null;
-                const dur = 6000; // Немного увеличил время для эпичности
-                const totalRot = 1800 + (Math.random() * 360); 
-                const sAng = currentRot;
+            let start = null, dur = 3200, rot = 1800 + (Math.random()*360), sAng = currentRot;
 
-                function animate(now) {
-                    if(!start) start = now;
-                    let t = (now - start) / dur;
-                    
-                    if (t >= 1) {
-                        currentRot = sAng + totalRot;
-                        document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
-                        finish(currentRot % 360, item);
-                        return;
-                    }
-                    
-                    // Единая математическая кривая (Quintic Ease Out)
-                    // Плавный набор и супер-плавное затухание без рывков
-                    let ease = 1 - Math.pow(1 - t, 5); 
-                    
-                    currentRot = sAng + (ease * totalRot);
-                    document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
-                    
-                    requestAnimationFrame(animate);
-                }
-                requestAnimationFrame(animate);
-            }, 500);
+            function animate(now) {
+                if(!start) start = now;
+                let t = Math.min((now - start) / dur, 1);
+                let ease = 1 - Math.pow(1 - t, 4);
+                currentRot = sAng + (ease * rot);
+                document.getElementById('cursor-wrapper').style.transform = `rotate(${currentRot}deg)`;
+                if(t < 1) requestAnimationFrame(animate);
+                else finish(currentRot % 360, item);
+            }
+            requestAnimationFrame(animate);
         }
 
         function finish(deg, item) {
-            spinning = false; 
-            user.stats.ups++;
+            spinning = false; user.stats.ups++;
             document.querySelectorAll('.x-ctrl').forEach(b => b.disabled = false);
-            
             const winSize = (chance / 100) * 360;
+            // Точный хитбокс палочки (1.5 градуса вместо 7)
             const win = (deg >= (180 - winSize/2 - 1.5) && deg <= (180 + winSize/2 + 1.5));
-            
             const msg = document.getElementById('status-msg');
             if(win) {
                 const profit = Math.floor(item.p * (100/chance)) - item.p;
                 item.p += profit; item.n = "★ " + item.n.replace("★ ", "");
                 user.stats.earned += profit;
-                msg.innerText = "УСПЕХ"; msg.className = "win-glow";
-                spawnExplosion();
+                msg.innerText = "УСПЕХ"; msg.className = "win-glow"; spawnExplosion();
             } else {
                 user.stats.lost += item.p;
                 user.inv = user.inv.filter(x => x.id !== item.id);
                 msg.innerText = "НЕУДАЧА"; msg.className = "loss-glow";
             }
-            selected.clear(); 
-            update();
+            selected.clear(); update();
         }
 
         function openModal(text, action) {
