@@ -2,366 +2,432 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ОПГРЕЙДОР — Твоя судьба в твоих руках</title>
+    <title>ОПГРЕЙДОР V2</title>
     <style>
         :root {
             --bg: #0a0a0a;
-            --panel: #151515;
+            --panel: #121212;
             --accent: #a020f0;
-            --accent-glow: rgba(160, 32, 240, 0.5);
+            --accent-glow: rgba(160, 32, 240, 0.6);
             --white: #ffffff;
-            --gray: #888;
+            --gray: #444;
+            --win: #2ecc71;
+            --loss: #e74c3c;
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--white); overflow-x: hidden; }
+        * { box-sizing: border-box; font-family: 'Lexend', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--white); overflow-x: hidden; height: 100vh; }
 
-        /* Auth Screen */
-        #auth-screen {
-            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .auth-card { background: var(--panel); padding: 40px; border-radius: 15px; border: 1px solid var(--accent); width: 320px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid var(--gray); color: #fff; }
+        /* Auth */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .auth-card { background: var(--panel); padding: 30px; border: 1px solid var(--accent); border-radius: 10px; width: 300px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid var(--gray); color: #fff; outline: none; }
+        input:focus { border-color: var(--accent); }
 
-        /* Header */
-        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-        .logo-group { display: flex; gap: 20px; align-items: center; }
-        .nav-btn { cursor: pointer; font-size: 24px; filter: grayscale(1); transition: 0.3s; }
-        .nav-btn:hover { filter: grayscale(0); }
-        .profile-group { display: flex; align-items: center; gap: 15px; }
-        .balance { color: var(--accent); font-weight: bold; font-size: 1.2rem; }
-        .avatar { width: 40px; height: 40px; background: var(--gray); border-radius: 50%; cursor: pointer; border: 2px solid var(--accent); }
+        /* UI Structure */
+        header { height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; background: #000; border-bottom: 1px solid #111; }
+        .nav-icons { display: flex; gap: 25px; }
+        .icon-btn { cursor: pointer; font-size: 24px; transition: 0.3s; opacity: 0.6; }
+        .icon-btn:hover { opacity: 1; color: var(--accent); }
+        .balance-info { display: flex; align-items: center; gap: 15px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); background: #222; cursor: pointer; }
 
-        h1.main-title { text-align: center; color: var(--white); text-transform: uppercase; letter-spacing: 5px; margin: 20px 0; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; display: none; }
+        h1.game-logo { text-align: center; font-size: 2rem; letter-spacing: 8px; margin-bottom: 20px; color: var(--white); }
 
-        /* Upgrade Area */
-        .upgrade-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+        /* Roulette Game */
+        .game-area { display: flex; flex-direction: column; align-items: center; }
+        .wheel-box { position: relative; width: 320px; height: 320px; margin: 20px auto; }
+        #canvas-particles { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
         
-        .wheel-wrapper { position: relative; width: 300px; height: 300px; border-radius: 50%; border: 4px solid #222; overflow: hidden; background: #111; }
-        #wheel-fill { 
-            position: absolute; bottom: 0; width: 100%; 
-            background: linear-gradient(0deg, var(--accent) 0%, #6a0dad 100%); 
-            transition: height 0.5s ease;
+        .circle-bg { 
+            position: absolute; inset: 0; border-radius: 50%; border: 6px solid #1a1a1a; 
+            background: radial-gradient(circle, #111 0%, #000 100%);
+            overflow: hidden;
         }
-        .percent-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; font-weight: 900; z-index: 5; text-shadow: 0 0 10px #000; }
+        #wheel-zone {
+            position: absolute; bottom: 0; width: 100%; background: var(--accent);
+            box-shadow: 0 0 30px var(--accent-glow); transition: height 0.4s ease;
+        }
+        .center-info {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; z-index: 5;
+        }
+        #pct-text { font-size: 3rem; font-weight: 800; }
+        #result-msg { font-size: 1.2rem; font-weight: bold; margin-top: 5px; min-height: 1.5em; }
+
         #cursor {
-            position: absolute; width: 20px; height: 20px; background: var(--accent);
-            border: 3px solid #fff; border-radius: 50%; top: -5px; left: 50%;
-            transform: translateX(-50%); z-index: 10; box-shadow: 0 0 15px var(--accent);
+            position: absolute; width: 18px; height: 18px; background: var(--accent);
+            border: 3px solid #fff; border-radius: 50%; top: -6px; left: 50%;
+            transform: translateX(-50%); z-index: 15; box-shadow: 0 0 15px var(--accent);
         }
 
-        .main-btn {
-            margin-top: 30px; padding: 15px 50px; background: var(--accent); color: white;
-            border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 0 20px var(--accent-glow); transition: 0.3s;
+        .main-action-btn {
+            padding: 18px 60px; background: var(--accent); border: none; border-radius: 4px;
+            color: #fff; font-weight: bold; cursor: pointer; margin-top: 30px;
+            box-shadow: 0 0 25px var(--accent-glow); transition: 0.3s;
         }
-        .main-btn:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+        .main-action-btn:active { transform: scale(0.95); }
+        .main-action-btn:disabled { background: #333; box-shadow: none; }
 
-        .quick-odds { display: flex; gap: 10px; margin-top: 20px; }
-        .odd-btn { background: transparent; border: 1px solid #333; color: #fff; padding: 5px 15px; cursor: pointer; }
+        .control-rows { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
+        .btn-row { display: flex; gap: 10px; }
+        .sub-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px 16px; cursor: pointer; transition: 0.2s; }
+        .sub-btn:hover { border-color: var(--accent); }
 
-        /* Inventory */
-        .inventory-section { padding: 40px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        /* Inventory & Shop Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 20px; }
         .item-card { 
-            background: var(--panel); border: 1px solid #333; padding: 15px; 
-            text-align: center; cursor: pointer; transition: 0.2s;
+            background: var(--panel); border: 1px solid #222; padding: 15px; text-align: center; 
+            cursor: pointer; position: relative; transition: 0.2s;
         }
-        .item-card.selected { border-color: var(--accent); box-shadow: inset 0 0 10px var(--accent-glow); }
-        .item-price { color: #4caf50; font-size: 0.9rem; margin-top: 5px; }
+        .item-card.selected { border-color: var(--accent); box-shadow: inset 0 0 15px var(--accent-glow); }
+        .price-tag { color: #2ecc71; font-weight: bold; margin-top: 8px; }
 
-        /* Modals */
-        .modal { 
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
-            z-index: 2000; align-items: center; justify-content: center; 
-        }
-        .modal-content { background: var(--panel); padding: 30px; border-radius: 10px; width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
     </style>
 </head>
 <body>
 
-    <!-- Экран входа -->
     <div id="auth-screen">
-        <h1 style="margin-bottom: 20px;">ОПГРЕЙДОР</h1>
         <div class="auth-card">
-            <input type="text" id="username" placeholder="Логин">
-            <input type="password" id="password" placeholder="Пароль">
-            <button class="main-btn" style="width: 100%;" onclick="login()">ВОЙТИ / РЕГА</button>
+            <h2 style="margin-bottom: 20px;">ОПГРЕЙДОР</h2>
+            <input type="text" id="login-input" placeholder="Юзернейм">
+            <input type="password" id="pass-input" placeholder="Пароль">
+            <button class="main-action-btn" style="width: 100%; margin-top: 10px;" onclick="initUser()">ВХОД / РЕГА</button>
         </div>
     </div>
 
-    <!-- Основной интерфейс (скрыт до входа) -->
-    <div id="main-ui" style="display: none;">
+    <div id="app" style="display: none;">
         <header>
-            <div class="logo-group">
-                <div class="nav-btn" onclick="showScreen('main')">🎲</div>
-                <div class="nav-btn" onclick="showScreen('shop')">🛒</div>
+            <div class="nav-icons">
+                <span class="icon-btn" onclick="showTab('main')">🎲</span>
+                <span class="icon-btn" onclick="showTab('shop')">🛒</span>
             </div>
-            <div class="profile-group">
-                <div class="balance"><span id="user-balance">0</span> ₴</div>
-                <div class="avatar" onclick="showScreen('profile')"></div>
+            <div class="balance-info">
+                <span id="balance-val" style="color:var(--accent); font-weight:bold;">1000</span> ₴
+                <div class="avatar" onclick="showTab('profile')"></div>
             </div>
         </header>
 
-        <h1 class="main-title">ОПГРЕЙДОР</h1>
+        <div id="tab-main" class="container" style="display: block;">
+            <h1 class="game-logo">ОПГРЕЙДОР</h1>
+            <div class="game-area">
+                <div class="wheel-box">
+                    <canvas id="canvas-particles"></canvas>
+                    <div class="circle-bg">
+                        <div id="wheel-zone" style="height: 10%;"></div>
+                    </div>
+                    <div id="cursor"></div>
+                    <div class="center-info">
+                        <div id="pct-text">10%</div>
+                        <div id="result-msg"></div>
+                    </div>
+                </div>
 
-        <!-- Экран Рулетки -->
-        <section id="screen-main" class="upgrade-container">
-            <div class="wheel-wrapper">
-                <div id="wheel-fill" style="height: 10%;"></div>
-                <div class="percent-display" id="current-percent">10%</div>
-                <div id="cursor"></div>
+                <button class="main-action-btn" id="spin-btn" onclick="runUpgrade()">ПРОКАЧАТЬ</button>
+
+                <div class="control-rows">
+                    <div class="btn-row">
+                        <button class="sub-btn" onclick="setMultiplier(2)">x2</button>
+                        <button class="sub-btn" onclick="setMultiplier(4)">x4</button>
+                        <button class="sub-btn" onclick="setMultiplier(8)">x8</button>
+                    </div>
+                    <div class="btn-row">
+                        <button class="sub-btn" onclick="setChance(35)">35%</button>
+                        <button class="sub-btn" onclick="setChance(55)">55%</button>
+                        <button class="sub-btn" onclick="setChance(75)">75%</button>
+                    </div>
+                </div>
+
+                <div style="width: 100%; margin-top: 40px;">
+                    <h3>ВЫБЕРИ ПРЕДМЕТ ДЛЯ АПГРЕЙДА</h3>
+                    <div id="main-inv-grid" class="grid"></div>
+                </div>
             </div>
+        </div>
 
-            <button class="main-btn" id="upgrade-btn" onclick="startUpgrade()">ПРОКАЧАТЬ</button>
-
-            <div class="quick-odds">
-                <button class="odd-btn" onclick="setChance(35)">x2 | 35%</button>
-                <button class="odd-btn" onclick="setChance(55)">x4 | 55%</button>
-                <button class="odd-btn" onclick="setChance(75)">x8 | 75%</button>
+        <div id="tab-shop" class="container">
+            <h1 class="game-logo">МАГАЗИН ХЛАМА</h1>
+            <div style="display:flex; gap: 10px; justify-content: center; align-items: center;">
+                <input type="number" id="shop-filter" placeholder="Цена около..." style="width: 150px;">
+                <button class="sub-btn" onclick="generateShop()">ПОИСК</button>
             </div>
-
-            <div class="inventory-section" style="width: 100%;">
-                <h3>ИНВЕНТАРЬ (выбери предмет)</h3>
-                <div id="main-inventory" class="grid"></div>
-            </div>
-        </section>
-
-        <!-- Экран Магазина -->
-        <section id="screen-shop" class="inventory-section" style="display:none;">
-            <h2>МАГАЗИН ХЛАМА</h2>
             <div id="shop-grid" class="grid"></div>
-            <button class="main-btn" onclick="buySelected()">КУПИТЬ ВЫБРАННОЕ</button>
-        </section>
+            <center><button class="main-action-btn" onclick="buySelected()">КУПИТЬ ВЫБРАННОЕ</button></center>
+        </div>
 
-        <!-- Экран Профиля -->
-        <section id="screen-profile" class="inventory-section" style="display:none;">
-            <h2>МОЙ ПРОФИЛЬ</h2>
-            <div id="stats" style="margin: 20px 0; line-height: 2;"></div>
-            <div style="display: flex; gap: 10px;">
-                <button class="odd-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ (<span id="sell-count">0</span>)</button>
-                <button class="odd-btn" onclick="sellAll()">ПРОДАТЬ ВСЕ</button>
+        <div id="tab-profile" class="container">
+            <h1 class="game-logo">ПРОФИЛЬ</h1>
+            <div id="user-stats" style="background: var(--panel); padding: 20px; border-radius: 8px; margin-bottom: 20px; line-height: 1.8;"></div>
+            <div class="btn-row" style="margin-bottom: 20px;">
+                <button class="sub-btn" onclick="sellSelected()">ПРОДАТЬ ВЫБРАННОЕ</button>
+                <button class="sub-btn" onclick="sellAll()">ПРОДАТЬ ВСЕ</button>
             </div>
-            <div id="profile-inventory" class="grid"></div>
-        </section>
+            <div id="prof-inv-grid" class="grid"></div>
+        </div>
     </div>
 
     <script>
-        // Данные
-        const itemNames = ["Сифилис", "Герпес", "Почка соседа", "Девственность", "Левое яйцо", "Печень алкоголика", "Мамкина заначка", "Хвост бобра", "Золотой зуб", "Мозг хлебушка"];
-        let user = {
-            name: "",
-            balance: 1000,
-            inventory: [],
-            stats: { upgrades: 0, lost: 0, best: { name: "-", price: 0 } }
+        // Константы
+        const POOL = ["Сифилис", "Герпес", "Почка соседа", "Девственность", "Левое яйцо", "Печень алкоголика", "Мамкина заначка", "Хвост бобра", "Золотой зуб", "Яйца судьбы", "Сердце бывшего", "Мозг хлебушка"];
+        
+        let userData = {
+            name: "", balance: 1000, inventory: [],
+            stats: { count: 0, lost: 0, bestName: "-", bestPrice: 0 }
         };
 
         let currentChance = 10;
-        let selectedItems = new Set();
-        let isSpinning = false;
+        let selectedIds = new Set();
+        let isRunning = false;
 
-        // Логика входа
-        function login() {
-            const name = document.getElementById('username').value;
-            if (!name) return alert("Введи имя, лудоман!");
+        // Инициализация
+        function initUser() {
+            const login = document.getElementById('login-input').value;
+            if(!login) return alert("Введи имя!");
             
-            const saved = localStorage.getItem('user_' + name);
-            if (saved) {
-                user = JSON.parse(saved);
-            } else {
-                user.name = name;
-                user.inventory = [
-                    { id: 1, name: "Твои яйца", price: 150 },
-                    { id: 2, name: "Девственность", price: 300 },
-                    { id: 3, name: "Хромосома", price: 50 }
+            const saved = localStorage.getItem('upgr_user_' + login);
+            if(saved) userData = JSON.parse(saved);
+            else {
+                userData.name = login;
+                userData.inventory = [
+                    {id: 1, name: "Твои яйца", price: 100},
+                    {id: 2, name: "Девственность", price: 250},
+                    {id: 3, name: "Аппендикс", price: 50}
                 ];
             }
             document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
+            document.getElementById('app').style.display = 'block';
             updateUI();
         }
 
-        function save() {
-            localStorage.setItem('user_' + user.name, JSON.stringify(user));
-        }
+        function save() { localStorage.setItem('upgr_user_' + userData.name, JSON.stringify(userData)); }
 
-        // Интерфейс
         function updateUI() {
-            document.getElementById('user-balance').innerText = Math.floor(user.balance);
-            renderInventory('main-inventory');
-            renderInventory('profile-inventory');
+            document.getElementById('balance-val').innerText = Math.floor(userData.balance);
+            renderGrid('main-inv-grid', userData.inventory);
+            renderGrid('prof-inv-grid', userData.inventory);
             renderStats();
             save();
         }
 
-        function renderInventory(id) {
-            const container = document.getElementById(id);
+        function renderGrid(containerId, items) {
+            const container = document.getElementById(containerId);
             container.innerHTML = '';
-            user.inventory.forEach(item => {
-                const card = document.createElement('div');
-                card.className = `item-card ${selectedItems.has(item.id) ? 'selected' : ''}`;
-                card.onclick = () => toggleSelect(item.id);
-                card.innerHTML = `<div>${item.name}</div><div class="item-price">${item.price} ₴</div>`;
-                container.appendChild(card);
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `item-card ${selectedIds.has(item.id) ? 'selected' : ''}`;
+                div.innerHTML = `<div>${item.name}</div><div class="price-tag">${item.price} ₴</div>`;
+                div.onclick = () => {
+                    if(selectedIds.has(item.id)) selectedIds.delete(item.id);
+                    else selectedIds.add(item.id);
+                    updateUI();
+                };
+                container.appendChild(div);
             });
         }
 
         function renderStats() {
-            document.getElementById('stats').innerHTML = `
-                Баланс: ${user.balance} ₴<br>
-                Апгрейдов сделано: ${user.stats.upgrades}<br>
-                Проиграно в сумме: ${user.stats.lost} ₴<br>
-                Лучшая прокачка: ${user.stats.best.name} (${user.stats.best.price} ₴)
+            document.getElementById('user-stats').innerHTML = `
+                <b>Игрок:</b> ${userData.name} <br>
+                <b>Всего апгрейдов:</b> ${userData.stats.count} <br>
+                <b>Слито денег:</b> <span style="color:red">${userData.stats.lost} ₴</span> <br>
+                <b>Лучший предмет:</b> ${userData.stats.bestName} (${userData.stats.bestPrice} ₴)
             `;
-            document.getElementById('sell-count').innerText = selectedItems.size;
         }
 
-        function showScreen(screen) {
-            ['main', 'shop', 'profile'].forEach(s => document.getElementById('screen-' + s).style.display = 'none');
-            document.getElementById('screen-' + screen).style.display = 'block';
-            if (screen === 'shop') renderShop();
-            selectedItems.clear();
+        function showTab(tab) {
+            ['main', 'shop', 'profile'].forEach(t => document.getElementById('tab-'+t).style.display = 'none');
+            document.getElementById('tab-'+tab).style.display = 'block';
+            selectedIds.clear();
             updateUI();
         }
 
-        function toggleSelect(id) {
-            if (selectedItems.has(id)) selectedItems.delete(id);
-            else selectedItems.add(id);
-            updateUI();
+        // Логика игры
+        function setChance(c) {
+            if(isRunning) return;
+            currentChance = c;
+            document.getElementById('wheel-zone').style.height = c + '%';
+            document.getElementById('pct-text').innerText = c + '%';
         }
 
-        // Логика рулетки
-        function setChance(c) { 
-            currentChance = c; 
-            document.getElementById('wheel-fill').style.height = c + '%';
-            document.getElementById('current-percent').innerText = c + '%';
+        function setMultiplier(m) {
+            setChance(Math.floor(100 / m));
         }
 
-        function startUpgrade() {
-            if (isSpinning || selectedItems.size !== 1) return alert("Выбери ровно 1 предмет для апгрейда!");
-            
-            isSpinning = true;
-            document.getElementById('upgrade-btn').disabled = true;
-            
+        function runUpgrade() {
+            if(isRunning) return;
+            if(selectedIds.size !== 1) return alert("Выбери 1 предмет!");
+
+            const itemId = Array.from(selectedIds)[0];
+            const itemIdx = userData.inventory.findIndex(i => i.id === itemId);
+            const item = userData.inventory[itemIdx];
+
+            isRunning = true;
+            document.getElementById('spin-btn').disabled = true;
+            document.getElementById('result-msg').innerText = '';
+
             const cursor = document.getElementById('cursor');
-            const wheel = document.querySelector('.wheel-wrapper');
-            let rotation = 0;
-            let speed = 20;
-
-            const itemId = Array.from(selectedItems)[0];
-            const itemIndex = user.inventory.findIndex(i => i.id === itemId);
-            const item = user.inventory[itemIndex];
-
-            // Анимация кручения курсора по окружности
             let start = Date.now();
-            const duration = 4000;
+            const duration = 5000; // 5 секунд кручения
+            const totalRotation = (Math.random() * 360) + 2880; // 8 полных кругов + рандом
 
-            function animate() {
-                let elapsed = Date.now() - start;
-                let progress = elapsed / duration;
-                
-                // Замедление (easing)
-                let ease = 1 - Math.pow(1 - progress, 3);
-                let currentPos = ease * 3600; // 10 кругов
+            function frame() {
+                let now = Date.now();
+                let t = (now - start) / duration;
+                if (t > 1) t = 1;
 
-                let angle = currentPos % 360;
-                let rad = (angle - 90) * (Math.PI / 180);
-                let x = 150 + 140 * Math.cos(rad);
-                let y = 150 + 140 * Math.sin(rad);
-                
+                // Замедление
+                let ease = 1 - Math.pow(1 - t, 4);
+                let currentAngle = (ease * totalRotation) % 360;
+
+                // Движение курсора по кругу
+                let rad = (currentAngle - 90) * (Math.PI / 180);
+                let x = 160 + 152 * Math.cos(rad);
+                let y = 160 + 152 * Math.sin(rad);
                 cursor.style.left = x + 'px';
                 cursor.style.top = y + 'px';
 
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    finishUpgrade(angle, item, itemIndex);
-                }
+                if (t < 1) requestAnimationFrame(frame);
+                else checkWin(currentAngle, item, itemIdx);
             }
-            animate();
+            requestAnimationFrame(frame);
         }
 
-        function finishUpgrade(finalAngle, item, index) {
-            isSpinning = false;
-            document.getElementById('upgrade-btn').disabled = false;
+        function checkWin(angle, item, idx) {
+            isRunning = false;
+            document.getElementById('spin-btn').disabled = false;
 
-            // Зона выигрыша: так как наполнение снизу вверх, зона — это нижняя часть круга (180 градусов снизу)
-            // Упростим: если шанс 30%, то выиграл, если Random < 0.3
-            const win = Math.random() * 100 < currentChance;
-
-            if (win) {
-                const multiplier = (100 / currentChance);
-                const newPrice = Math.floor(item.price * multiplier);
-                const newItem = {
-                    id: Date.now(),
-                    name: "Апнутый " + item.name,
-                    price: newPrice
-                };
-                user.inventory.splice(index, 1, newItem);
-                if (newPrice > user.stats.best.price) {
-                    user.stats.best = { name: newItem.name, price: newPrice };
-                }
-                alert("УДАЧА! Теперь у тебя " + newItem.name);
-            } else {
-                user.stats.lost += item.price;
-                user.inventory.splice(index, 1);
-                alert("ЛУЗЕР! " + item.name + " удален.");
-            }
+            // Зона выигрыша: так как наполнение снизу, 
+            // это углы от (180 - шанс*1.8) до (180 + шанс*1.8) примерно
+            // Но сделаем проще и честнее для визуала:
+            // Внизу круга (180 градусов) центр зоны. 
+            const halfZone = (currentChance / 100) * 180;
+            const winRange = [180 - halfZone, 180 + halfZone];
             
-            user.stats.upgrades++;
-            selectedItems.clear();
+            const isWin = angle >= winRange[0] && angle <= winRange[1];
+            const msg = document.getElementById('result-msg');
+
+            if(isWin) {
+                const mult = 100 / currentChance;
+                const newPrice = Math.floor(item.price * mult);
+                userData.inventory[idx] = { id: Date.now(), name: "★ " + item.name, price: newPrice };
+                if(newPrice > userData.stats.bestPrice) {
+                    userData.stats.bestPrice = newPrice;
+                    userData.stats.bestName = userData.inventory[idx].name;
+                }
+                msg.innerText = "ПОБЕДА";
+                msg.style.color = "var(--win)";
+                spawnParticles();
+            } else {
+                userData.stats.lost += item.price;
+                userData.inventory.splice(idx, 1);
+                msg.innerText = "НЕ БЕДА";
+                msg.style.color = "var(--loss)";
+            }
+            userData.stats.count++;
+            selectedIds.clear();
             updateUI();
         }
 
+        // Частицы
+        function spawnParticles() {
+            const canvas = document.getElementById('canvas-particles');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 320; canvas.height = 320;
+            let parts = [];
+            for(let i=0; i<30; i++) {
+                parts.push({
+                    x: 160, y: 160,
+                    vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
+                    r: Math.random()*4+2, life: 1
+                });
+            }
+            function draw() {
+                ctx.clearRect(0,0,320,320);
+                parts.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                    ctx.fillStyle = `rgba(160, 32, 240, ${p.life})`;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+                    if(p.life <= 0) parts.splice(i, 1);
+                });
+                if(parts.length > 0) requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
         // Магазин
-        function renderShop() {
+        let shopItems = [];
+        function generateShop() {
+            const val = parseInt(document.getElementById('shop-filter').value) || 100;
+            shopItems = [];
+            for(let i=0; i<8; i++) {
+                shopItems.push({
+                    id: 'shop_'+i,
+                    name: POOL[Math.floor(Math.random()*POOL.length)],
+                    price: Math.floor(val * (0.7 + Math.random()*0.6))
+                });
+            }
             const grid = document.getElementById('shop-grid');
             grid.innerHTML = '';
-            for(let i=0; i<6; i++) {
-                const p = Math.floor(Math.random() * 500) + 50;
-                const n = itemNames[Math.floor(Math.random() * itemNames.length)];
-                const card = document.createElement('div');
-                card.className = 'item-card';
-                card.innerHTML = `<div>${n}</div><div class="item-price">${p} ₴</div>`;
-                card.onclick = () => {
-                    if (user.balance >= p) {
-                        if (confirm(`Купить ${n}?`)) {
-                            user.balance -= p;
-                            user.inventory.push({ id: Date.now(), name: n, price: p });
-                            updateUI();
-                        }
-                    } else alert("Иди работай, денег нет");
+            shopItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `item-card ${selectedIds.has(item.id) ? 'selected' : ''}`;
+                div.innerHTML = `<div>${item.name}</div><div class="price-tag">${item.price} ₴</div>`;
+                div.onclick = () => {
+                    if(selectedIds.has(item.id)) selectedIds.delete(item.id);
+                    else selectedIds.add(item.id);
+                    renderShopOnly();
                 };
-                grid.appendChild(card);
+                grid.appendChild(div);
+            });
+        }
+
+        function renderShopOnly() {
+            const cards = document.querySelectorAll('#shop-grid .item-card');
+            shopItems.forEach((item, i) => {
+                cards[i].className = `item-card ${selectedIds.has(item.id) ? 'selected' : ''}`;
+            });
+        }
+
+        function buySelected() {
+            let total = 0;
+            const toAdd = [];
+            shopItems.forEach(item => {
+                if(selectedIds.has(item.id)) {
+                    total += item.price;
+                    toAdd.push({...item, id: Date.now() + Math.random()});
+                }
+            });
+            if(total > userData.balance) return alert("Мало грошей!");
+            if(toAdd.length === 0) return;
+
+            if(confirm(`Купить ${toAdd.length} предметов за ${total} ₴?`)) {
+                userData.balance -= total;
+                userData.inventory.push(...toAdd);
+                selectedIds.clear();
+                showTab('main');
             }
         }
 
+        // Продажа
         function sellSelected() {
-            if (selectedItems.size === 0) return;
-            let sum = 0;
-            selectedItems.forEach(id => {
-                const idx = user.inventory.findIndex(i => i.id === id);
-                sum += user.inventory[idx].price;
+            let total = 0;
+            userData.inventory = userData.inventory.filter(item => {
+                if(selectedIds.has(item.id)) { total += item.price; return false; }
+                return true;
             });
-
-            if (confirm(`Продать выбранное (${selectedItems.size} шт) за ${sum} ₴?`)) {
-                user.inventory = user.inventory.filter(i => !selectedItems.has(i.id));
-                user.balance += sum;
-                selectedItems.clear();
-                updateUI();
-            }
+            userData.balance += total;
+            selectedIds.clear();
+            updateUI();
         }
 
         function sellAll() {
-            let sum = user.inventory.reduce((a, b) => a + b.price, 0);
-            if (confirm(`Продать ВСЁ за ${sum} ₴?`)) {
-                user.inventory = [];
-                user.balance += sum;
-                selectedItems.clear();
-                updateUI();
-            }
+            if(!confirm("Реально всё продать?")) return;
+            let total = userData.inventory.reduce((sum, i) => sum + i.price, 0);
+            userData.balance += total;
+            userData.inventory = [];
+            selectedIds.clear();
+            updateUI();
         }
     </script>
 </body>
