@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V8 GOLD</title>
+    <title>UPGRADOR V9 PRECISE</title>
     <style>
         :root {
             --bg: #0a0a0a;
             --panel: #161616;
             --accent: #a020f0;
             --accent-glow: rgba(160, 32, 240, 0.6);
-            --white: #f0f0f0;
             --win: #00ff88;
             --loss: #ff3e3e;
             --radius: 12px;
         }
 
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--white); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Header */
         header { 
             height: 65px; background: #000; display: flex; align-items: center; 
             padding: 0 15px; border-bottom: 1px solid #222; flex-shrink: 0; position: relative;
@@ -33,11 +31,11 @@
         .nav-btn { font-size: 1.5rem; cursor: pointer; z-index: 10; }
         .balance-box { margin-left: auto; display: flex; align-items: center; gap: 8px; font-weight: bold; z-index: 10; }
 
-        /* Roulette Center Fix */
-        main { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; justify-content: center; }
-        .container { display: none; width: 100%; max-width: 450px; }
-        .upgrade-section { display: flex; flex-direction: column; align-items: center; width: 100%; }
+        main { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .container { display: none; width: 100%; max-width: 450px; margin: 0 auto; }
 
+        /* Центрирование рулетки */
+        .upgrade-section { display: flex; flex-direction: column; align-items: center; width: 100%; }
         .wheel-container { 
             position: relative; width: 270px; height: 270px; margin: 20px 0; 
             border-radius: 50%; border: 10px solid #1a1a1a; background: #000; overflow: hidden;
@@ -49,45 +47,40 @@
             transition: height 0.6s cubic-bezier(0.17, 0.84, 0.44, 1);
         }
         
-        #cursor-wrapper { position: absolute; inset: 0; z-index: 20; }
+        #cursor-wrapper { position: absolute; inset: 0; z-index: 20; transform: rotate(0deg); }
         #cursor-line { 
-            position: absolute; top: 10px; left: 50%; width: 4px; height: 25px; 
+            position: absolute; top: 10px; left: 50%; width: 5px; height: 25px; 
             background: #fff; border-radius: 10px; transform: translateX(-50%); 
             box-shadow: 0 0 15px #fff; 
         }
 
-        /* Status & NEON Glow */
         .center-stat { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; }
-        #status-msg { height: 30px; font-size: 1.4rem; font-weight: 900; margin-top: 10px; }
-        .win-glow { color: var(--win) !important; text-shadow: 0 0 20px var(--win), 0 0 40px var(--win); }
-        .loss-glow { color: var(--loss) !important; text-shadow: 0 0 20px var(--loss), 0 0 40px var(--loss); }
+        #status-msg { height: 35px; font-size: 1.4rem; font-weight: 900; margin-top: 10px; }
+        .win-glow { color: var(--win) !important; text-shadow: 0 0 20px var(--win); }
+        .loss-glow { color: var(--loss) !important; text-shadow: 0 0 20px var(--loss); }
 
-        /* Buttons & Selected State */
         .btn-row { display: flex; width: 100%; gap: 8px; margin-bottom: 8px; }
-        .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 5px; border-radius: 10px; flex: 1; font-weight: bold; transition: 0.3s; }
+        .opt-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 5px; border-radius: 10px; flex: 1; font-weight: bold; transition: 0.2s; }
         .opt-btn.active { background: var(--accent); border-color: #fff; box-shadow: 0 0 15px var(--accent-glow); }
 
         .action-btn { width: 100%; padding: 18px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 1.2rem; font-weight: 900; box-shadow: 0 5px 15px var(--accent-glow); margin-top: 10px; }
         
-        /* Items Grid */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; width: 100%; }
-        .item-frame { border: 2px solid #222; border-radius: var(--radius); padding: 15px; background: var(--panel); text-align: center; transition: 0.2s; }
-        .item-frame.selected { border-color: var(--accent); background: #1e0a2e; transform: scale(0.97); }
+        .item-frame { border: 2px solid #222; border-radius: var(--radius); padding: 15px; background: var(--panel); text-align: center; }
+        .item-frame.selected { border-color: var(--accent); background: #1e0a2e; }
         .price { color: var(--win); font-weight: bold; margin-top: 5px; }
-        
-        .stats-card { background: #111; border-radius: var(--radius); padding: 20px; margin: 15px 0; border: 1px solid #222; line-height: 2.2; }
-        
+
         #custom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
-        #p-canvas { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 4000; display: flex; align-items: center; justify-content: center; }
+        canvas#p-canvas { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div style="background:var(--panel); padding:30px; border-radius:15px; border:1px solid var(--accent); width:300px; text-align:center;">
-            <h1 style="color:var(--accent); margin-bottom:15px; letter-spacing:2px;">ЛОГИН</h1>
-            <input type="text" id="user-in" placeholder="Твой ник..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; outline:none;">
+            <h1 style="color:var(--accent); margin-bottom:15px;">LOGIN</h1>
+            <input type="text" id="user-in" placeholder="Никнейм..." style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; margin-bottom:15px; outline:none;">
             <button class="action-btn" onclick="login()">ВОЙТИ</button>
         </div>
     </div>
@@ -97,7 +90,7 @@
             <h3 id="modal-title" style="margin-bottom:10px;">Продажа</h3>
             <p id="modal-desc" style="margin-bottom:20px; color:#bbb;"></p>
             <div style="display:flex; gap:10px;">
-                <button class="opt-btn" onclick="closeModal()">НЕТ</button>
+                <button class="opt-btn" onclick="closeModal()">ОТМЕНА</button>
                 <button class="opt-btn" style="background:var(--accent);" id="modal-confirm">ДА</button>
             </div>
         </div>
@@ -113,7 +106,6 @@
     </header>
 
     <main>
-        <!-- Главная -->
         <div id="p-main" class="container" style="display: block;">
             <div class="upgrade-section">
                 <div class="wheel-container">
@@ -126,35 +118,33 @@
                     </div>
                 </div>
                 <div class="btn-row">
-                    <button class="opt-btn btn-chance" id="m2" onclick="setM(2, 'm2')">X2</button>
-                    <button class="opt-btn btn-chance" id="m4" onclick="setM(4, 'm4')">X4</button>
-                    <button class="opt-btn btn-chance" id="m10" onclick="setM(10, 'm10')">X10</button>
+                    <button class="opt-btn bc" id="m2" onclick="setM(2, 'm2')">X2</button>
+                    <button class="opt-btn bc" id="m4" onclick="setM(4, 'm4')">X4</button>
+                    <button class="opt-btn bc" id="m10" onclick="setM(10, 'm10')">X10</button>
                 </div>
                 <div class="btn-row">
-                    <button class="opt-btn btn-chance" id="c35" onclick="setChance(35, 'c35')">35%</button>
-                    <button class="opt-btn btn-chance" id="c55" onclick="setChance(55, 'c55')">55%</button>
-                    <button class="opt-btn btn-chance" id="c75" onclick="setChance(75, 'c75')">75%</button>
+                    <button class="opt-btn bc" id="c35" onclick="setChance(35, 'c35')">35%</button>
+                    <button class="opt-btn bc" id="c55" onclick="setChance(55, 'c55')">55%</button>
+                    <button class="opt-btn bc" id="c75" onclick="setChance(75, 'c75')">75%</button>
                 </div>
                 <button class="action-btn" id="go-btn" onclick="startSpin()">ПРОКАЧАТЬ</button>
                 <div id="inv-main" class="grid"></div>
             </div>
         </div>
 
-        <!-- Магазин -->
         <div id="p-shop" class="container">
-            <h2 style="margin-bottom:15px;">МАГАЗИН</h2>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <input type="number" id="budget" placeholder="Мин. цена..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
+            <h2>МАГАЗИН</h2>
+            <div style="display:flex; gap:10px; margin:15px 0;">
+                <input type="number" id="budget" placeholder="Цена от..." style="flex:1; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
                 <button class="opt-btn" style="flex:0.5;" onclick="refreshShop()">ПОИСК</button>
             </div>
             <div id="shop-grid" class="grid"></div>
             <button class="action-btn" onclick="buySelected()">КУПИТЬ ВЫБРАННОЕ</button>
         </div>
 
-        <!-- Профиль -->
         <div id="p-profile" class="container">
             <h2>ПРОФИЛЬ</h2>
-            <div id="stat-box" class="stats-card"></div>
+            <div id="stat-box" style="background:#111; padding:20px; border-radius:12px; margin:15px 0; border:1px solid #222; line-height:2;"></div>
             <div class="btn-row">
                 <button class="opt-btn" onclick="openSellModal('selected')">ПРОДАТЬ ВЫБРАННОЕ</button>
                 <button class="opt-btn" onclick="openSellModal('all')">ПРОДАТЬ ВСЁ</button>
@@ -171,7 +161,7 @@
         function login() {
             const n = document.getElementById('user-in').value;
             if(!n) return;
-            const s = localStorage.getItem('upg_v8_'+n);
+            const s = localStorage.getItem('upg_v9_'+n);
             if(s) user = JSON.parse(s);
             else { user.name = n; user.inv = [{id:1, n:"Твои яйца", p:100}]; }
             document.getElementById('auth-screen').style.display='none';
@@ -183,19 +173,13 @@
             renderInv('inv-main', true);
             renderInv('inv-prof', false);
             renderStats();
-            localStorage.setItem('upg_v8_'+user.name, JSON.stringify(user));
+            localStorage.setItem('upg_v9_'+user.name, JSON.stringify(user));
         }
 
         function renderStats() {
             const box = document.getElementById('stat-box');
             if(!box) return;
-            box.innerHTML = `
-                👤 Игрок: <b>${user.name}</b><br>
-                📊 Всего апгрейдов: <b>${user.stats.ups}</b><br>
-                💸 Слито в ноль: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>
-                📈 Чистая прибыль: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>
-                🏆 Лучший дроп: <b>${user.stats.best.n}</b> (${user.stats.best.p} ₴)
-            `;
+            box.innerHTML = `👤 Игрок: <b>${user.name}</b><br>📊 Апгрейдов: ${user.stats.ups}<br>💸 Слито: <span style="color:var(--loss)">${user.stats.lost} ₴</span><br>📈 Прибыль: <span style="color:var(--win)">${user.stats.earned} ₴</span><br>🏆 Лучший: ${user.stats.best.n}`;
         }
 
         function renderInv(id, single) {
@@ -217,22 +201,22 @@
             selected.clear(); update();
         }
 
-        function setChance(c, btnId) { 
+        function setChance(c, id) { 
             if(spinning) return; 
             chance = c; 
             document.getElementById('wheel-fill').style.height = c + '%'; 
             document.getElementById('pct-view').innerText = c + '%'; 
-            document.querySelectorAll('.btn-chance').forEach(b => b.classList.remove('active'));
-            if(btnId) document.getElementById(btnId).classList.add('active');
+            document.querySelectorAll('.bc').forEach(b => b.classList.remove('active'));
+            if(id) document.getElementById(id).classList.add('active');
         }
-        function setM(m, btnId) { setChance(Math.floor(100/m), btnId); }
+        function setM(m, id) { setChance(Math.floor(100/m), id); }
 
         function startSpin() {
             if(spinning || selected.size !== 1) return;
             spinning = true;
             document.getElementById('go-btn').disabled = true;
-            const msg = document.getElementById('status-msg');
-            msg.innerText = ''; msg.className = '';
+            document.getElementById('status-msg').innerText = ''; 
+            document.getElementById('status-msg').className = '';
 
             const itId = [...selected][0], idx = user.inv.findIndex(x => x.id === itId), item = user.inv[idx];
             let start = null, dur = 4000, rot = 1440 + (Math.random()*360), sAng = currentRot;
@@ -252,7 +236,14 @@
 
         function finish(deg, item, idx) {
             spinning = false; document.getElementById('go-btn').disabled = false;
-            const half = (chance / 100) * 180, win = (deg >= 180 - half && deg <= 180 + half);
+            
+            // НОВАЯ ТОЧНАЯ МАТЕМАТИКА
+            // Фиолетовая зона всегда внизу. Если шанс 25%, это от 135 до 225 градусов.
+            const zoneSize = (chance / 100) * 360;
+            const startZone = 180 - (zoneSize / 2);
+            const endZone = 180 + (zoneSize / 2);
+            
+            const win = (deg >= startZone && deg <= endZone);
             const msg = document.getElementById('status-msg');
             
             if(win) {
@@ -268,7 +259,6 @@
             user.stats.ups++; selected.clear(); update();
         }
 
-        // Modals
         function openSellModal(mode) {
             if(user.inv.length === 0) return;
             const modal = document.getElementById('custom-modal');
@@ -281,7 +271,7 @@
                 document.getElementById('modal-confirm').onclick = () => { sellSelected(); closeModal(); };
             } else {
                 sum = user.inv.reduce((a,b)=>a+b.p, 0);
-                desc.innerText = `Продать ВСЕ (${user.inv.length} шт.) за ${sum} ₴?`;
+                desc.innerText = `Продать ВСЕ за ${sum} ₴?`;
                 document.getElementById('modal-confirm').onclick = () => { sellAll(); closeModal(); };
             }
             modal.style.display = 'flex';
@@ -290,13 +280,14 @@
         function sellSelected() { user.inv = user.inv.filter(i => { if(selected.has(i.id)) { user.bal += i.p; return false; } return true; }); selected.clear(); update(); }
         function sellAll() { user.inv.forEach(i => user.bal += i.p); user.inv = []; selected.clear(); update(); }
 
-        // Shop Logic
         let sItems = [];
         function refreshShop() {
-            const b = parseInt(document.getElementById('budget').value) || 100;
+            const b = parseInt(document.getElementById('budget').value) || 50;
             sItems = [];
             for(let i=0; i<6; i++) {
-                sItems.push({id:'s'+i, n: ITEMS_POOL[Math.floor(Math.random()*ITEMS_POOL.length)], p: Math.floor(b + Math.random()*500)});
+                // Точная цена: бюджет + небольшая наценка до 20%
+                const price = Math.floor(b + (Math.random() * (b * 0.2)));
+                sItems.push({id:'s'+i, n: ITEMS_POOL[Math.floor(Math.random()*ITEMS_POOL.length)], p: price});
             }
             const g = document.getElementById('shop-grid'); g.innerHTML = '';
             sItems.forEach(i => {
@@ -308,10 +299,10 @@
         }
         function updateShopUI() { document.querySelectorAll('#shop-grid .item-frame').forEach((el, i) => el.className = `item-frame ${selected.has(sItems[i].id) ? 'selected' : ''}`); }
         function buySelected() {
-            let total = 0; let bought = false;
-            sItems.forEach(i => { if(selected.has(i.id)) { total += i.p; user.inv.push({...i, id: Date.now()+Math.random()}); bought = true; }});
-            if(!bought) return;
-            if(total > user.bal) return alert("Не хватает ₴");
+            let total = 0;
+            sItems.forEach(i => { if(selected.has(i.id)) { total += i.p; user.inv.push({...i, id: Date.now()+Math.random()}); }});
+            if(total === 0) return;
+            if(total > user.bal) return alert("Мало ₴");
             user.bal -= total; selected.clear(); showPage('main');
         }
 
@@ -321,7 +312,7 @@
             for(let i=0; i<60; i++) parts.push({x:135, y:135, vx:(Math.random()-0.5)*7, vy:(Math.random()-0.5)*7, r:Math.random()*2+1, l:1});
             function d() {
                 ctx.clearRect(0,0,270,270);
-                parts.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.l -= 0.012; ctx.fillStyle = `rgba(160, 32, 240, ${p.l})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); if(p.l<=0) parts.splice(i,1); });
+                parts.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.l -= 0.015; ctx.fillStyle = `rgba(160, 32, 240, ${p.l})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); if(p.l<=0) parts.splice(i,1); });
                 if(parts.length>0) requestAnimationFrame(d);
             } d();
         }
