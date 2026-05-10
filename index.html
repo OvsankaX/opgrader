@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UPGRADOR V25</title>
+    <title>UPGRADOR V25 — плавная рулетка 60fps</title>
     <style>
         :root {
             --bg: #0a0a12; --panel: #13131f; --accent: #a855f7;
@@ -13,7 +13,7 @@
             --win: #34d399; --loss: #f87171; --radius: 12px;
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* === TOAST === */
@@ -215,10 +215,11 @@
                         <div id="status-msg"></div>
                     </div>
                 </div>
+                <!-- Стрелка курcора с улучшенным свечением -->
                 <svg id="cursor-svg" style="position:absolute;inset:0;width:240px;height:240px;z-index:20;pointer-events:none;" viewBox="0 0 240 240">
-                    <line id="cursor-line-svg" x1="120" y1="5" x2="120" y2="30"
-                        stroke="white" stroke-width="3.5" stroke-linecap="butt"
-                        style="filter:drop-shadow(0 0 5px white) drop-shadow(0 0 14px #a855f7);
+                    <line id="cursor-line-svg" x1="120" y1="5" x2="120" y2="35"
+                        stroke="white" stroke-width="4" stroke-linecap="round"
+                        style="filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #a855f7) drop-shadow(0 0 6px #7c3aed);
                                transform-origin:120px 120px; transform:rotate(0deg);
                                transition: none;"/>
                 </svg>
@@ -234,7 +235,7 @@
             <button class="opt-btn bc x-ctrl" id="c55" onclick="setChance(55,'c55')">55%</button>
             <button class="opt-btn bc x-ctrl" id="c75" onclick="setChance(75,'c75')">75%</button>
         </div>
-        <button class="action-btn" id="go-btn" onclick="startSpin()" disabled>ПРОКАЧАТЬ</button>
+        <button class="action-btn" id="go-btn" onclick="startSpin()" disabled>ПРОКРУТИТЬ</button>
         <div class="inv-frame">
             <div class="inv-header">
                 <span class="inv-frame-label">ИНВЕНТАРЬ</span>
@@ -292,6 +293,7 @@
 </main>
 
 <script>
+// --------------------- Плавные анимации 60fps ---------------------
 const donutC = document.getElementById('donut-canvas');
 const dCtx   = donutC.getContext('2d');
 const CX=120, CY=120, R=90, RING=24;
@@ -350,10 +352,14 @@ function animateDonut(target) {
 }
 drawDonutRaw(10);
 
+// СТРЕЛКА (курсор) с плавным вращением и свечением
 const cursorLine = document.getElementById('cursor-line-svg');
 let cursorCurrentDeg = 0;
-function setCursorDeg(deg) { cursorLine.style.transform = `rotate(${deg}deg)`; }
+function setCursorDeg(deg) { 
+    cursorLine.style.transform = `rotate(${deg}deg)`; 
+}
 
+// Частицы (взрыв)
 const canvas = document.getElementById('particle-canvas');
 const ctx    = canvas.getContext('2d');
 let particles=[];
@@ -384,10 +390,11 @@ function updateParticles(){
 }
 updateParticles();
 
+// Плавное изменение чисел
 const _numAnims = {};
 function animateNumber(elId, target, suffix='', prefix='') {
     const el = document.getElementById(elId); if(!el) return;
-    const from = parseFloat(el.dataset.val||'0');
+    const from = parseFloat(el.dataset.val??'0');
     el.dataset.val = target;
     if(_numAnims[elId]) cancelAnimationFrame(_numAnims[elId]);
     if(from===target){ el.innerText=prefix+Math.round(target)+suffix; return; }
@@ -404,6 +411,7 @@ function animateNumber(elId, target, suffix='', prefix='') {
     _numAnims[elId]=requestAnimationFrame(step);
 }
 
+// Сообщения
 function toast(text){
     const c=document.getElementById('toast-container');
     const el=document.createElement('div'); el.className='toast';
@@ -444,8 +452,11 @@ let chance=10,selected=new Set(),spinning=false;
 function login(){
     const n=document.getElementById('user-in').value.trim(); if(!n)return;
     const saved=localStorage.getItem('upg_v25_'+n);
-    if(saved) user=JSON.parse(saved); else{user.name=n;user.inv=[{id:1,n:"Кейс",p:100}];}
+    if(saved) user=JSON.parse(saved); else{ user.name=n; user.inv=[{id:1,n:"Кейс",p:100}]; user.stats={ups:0,lost:0,earned:0}; }
     document.getElementById('auth-screen').style.display='none';
+    // добавляем баланс и статы, если их нет в старом сохранении
+    if(user.stats===undefined) user.stats={ups:0,lost:0,earned:0};
+    if(user.bal===undefined) user.bal=1000;
     update();
 }
 
@@ -466,7 +477,7 @@ function update(){
 function renderStats(){
     const total=user.stats.earned-user.stats.lost;
     const tEl=document.getElementById('prof-total');
-    const prevVal=parseFloat(tEl.dataset.val||'0');
+    const prevVal=parseFloat(tEl.dataset.val??'0');
     tEl.dataset.val=total;
     if(_numAnims['prof-total']) cancelAnimationFrame(_numAnims['prof-total']);
     let start=null,dur=500;
@@ -505,10 +516,10 @@ function renderInv(id,single){
 
 function setChance(c,id){
     if(spinning)return;
-    const prev=chance; chance=c;
+    chance=c;
     animateDonut(c);
     const el=document.getElementById('pct-view');
-    const from=parseInt(el.dataset.val||String(prev));
+    const from=parseInt(el.dataset.val??'10');
     el.dataset.val=c;
     if(_numAnims['pct-view']) cancelAnimationFrame(_numAnims['pct-view']);
     let start=null,dur=420;
@@ -516,16 +527,18 @@ function setChance(c,id){
         if(!start)start=now;
         const t=Math.min((now-start)/dur,1);
         const ease=1-Math.pow(1-t,3);
-        el.innerText=Math.round(from+(c-from)*ease)+'%';
-        if(t<1)_numAnims['pct-view']=requestAnimationFrame(step);
-        else{el.innerText=c+'%';delete _numAnims['pct-view'];}
+        const cur=Math.round(from+(c-from)*ease);
+        el.innerText=cur+'%';
+        if(t<1) _numAnims['pct-view']=requestAnimationFrame(step);
+        else { el.innerText=c+'%'; delete _numAnims['pct-view']; }
     }
     _numAnims['pct-view']=requestAnimationFrame(step);
     document.querySelectorAll('.bc').forEach(b=>b.classList.remove('active'));
     if(id)document.getElementById(id).classList.add('active');
 }
-function setM(m,id){setChance(Math.floor(100/m),id);}
+function setM(m,id){ setChance(Math.floor(100/m),id); }
 
+// === Плавное вращение стрелки ===
 function startSpin(){
     if(spinning||selected.size!==1)return;
     spinning=true;
@@ -534,16 +547,17 @@ function startSpin(){
     document.getElementById('status-msg').className='';
     document.querySelectorAll('.x-ctrl').forEach(b=>b.disabled=true);
     const item=user.inv.find(x=>x.id===[...selected][0]);
-    let start=null, dur=3200, rot=1800+(Math.random()*360), sAng=cursorCurrentDeg;
+    let start=null, dur=3200, rot=1800+(Math.random()*360), sAng=cursorCurrentDeg % 360;
+    
     function animate(now){
         if(!start)start=now;
         const t=Math.min((now-start)/dur,1);
         const ease=1-Math.pow(1-t,4);
-        const deg=sAng+ease*rot;
+        const deg=sAng + ease * rot;
         cursorCurrentDeg=deg;
-        setCursorDeg(deg);
+        setCursorDeg(deg % 360);
         if(t<1) requestAnimationFrame(animate);
-        else finish(deg%360, item);
+        else finish(deg % 360, item);
     }
     requestAnimationFrame(animate);
 }
@@ -552,17 +566,21 @@ function finish(deg,item){
     spinning=false; user.stats.ups++;
     document.querySelectorAll('.x-ctrl').forEach(b=>b.disabled=false);
     const winSize=(chance/100)*360;
-    const win=(deg>=(180-winSize/2-1.5)&&deg<=(180+winSize/2+1.5));
+    // зона победы: центр в 180 градусах
+    const win=(deg>=(180-winSize/2-1.0) && deg<=(180+winSize/2+1.0));
     const msg=document.getElementById('status-msg');
     if(win){
         const profit=Math.floor(item.p*(100/chance))-item.p;
-        item.p+=profit; item.n="★ "+item.n.replace("★ ","");
+        item.p+=profit; 
+        if(item.n.startsWith("★ ")) item.n=item.n.replace("★ ","");
+        else item.n="★ "+item.n;
         user.stats.earned+=profit;
         msg.innerText="УСПЕХ"; msg.className="win-glow"; spawnExplosion();
     } else {
         user.stats.lost+=item.p;
         user.inv=user.inv.filter(x=>x.id!==item.id);
-        msg.innerText="НЕУДАЧА"; msg.className="loss-glow";
+        // ИЗМЕНЕНИЕ: НЕУДАЧА → НЕ БЕДА
+        msg.innerText="НЕ БЕДА"; msg.className="loss-glow";
     }
     selected.clear(); update();
 }
@@ -624,6 +642,11 @@ function showPage(p){
         next.classList.add(nextOrder<prevOrder?'anim-from-left':'anim-from-right');
     }
     currentPage=p; selected.clear(); update();
+}
+// Инициализация
+window.onload = () => {
+    // автостарт анимации частиц
+    updateParticles();
 }
 </script>
 </body>
