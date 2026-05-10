@@ -216,11 +216,13 @@
                     </div>
                 </div>
                 <!-- Стрелка курcора с улучшенным свечением -->
-<div id="cursor-arrow" style="position:absolute; top:0; left:0; width:240px; height:240px; z-index:20; pointer-events:none;">
-    <div style="position:absolute; top:-8px; left:50%; transform:translateX(-50%);">
-        <div id="cursor-line" style="width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent; border-bottom:30px solid white; filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #a855f7); transform-origin: 12px 30px; transform:rotate(0deg);"></div>
-    </div>
-</div>
+                <svg id="cursor-svg" style="position:absolute;inset:0;width:240px;height:240px;z-index:20;pointer-events:none;" viewBox="0 0 240 240">
+                    <line id="cursor-line-svg" x1="120" y1="5" x2="120" y2="35"
+                        stroke="white" stroke-width="4" stroke-linecap="round"
+                        style="filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #a855f7) drop-shadow(0 0 6px #7c3aed);
+                               transform-origin:120px 120px; transform:rotate(0deg);
+                               transition: none;"/>
+                </svg>
             </div>
         </div>
         <div class="btn-row">
